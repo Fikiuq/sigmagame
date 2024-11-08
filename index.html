@@ -218,199 +218,164 @@
                 gameInterval = setInterval(gameLoop, 1000 / 60);
                 objectInterval = setInterval(createFallingObject, 1000);
                 setInterval(increaseScore, 1000);
-                document.querySelector('.start-screen').style.display = 'none';
-                canvas.style.display = 'block'; // Show the game canvas
-                window.addEventListener('keydown', handleKeyPress); // Listen for key presses
+                document.querySelector(".start-screen").style.display = "none"; // Hide start screen
             } else {
-                alert("Name is required to start the game.");
+                alert("Game cancelled.");
             }
         }
 
         function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+            if (!isGameRunning) return;
 
-            player.draw();
-            fallingObjects.forEach(function(object) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Update falling objects
+            fallingObjects.forEach((object, index) => {
                 object.update();
                 object.draw();
+                if (object.y > canvas.height) {
+                    fallingObjects.splice(index, 1);
+                }
 
-                // Collision detection with player
-                if (
-                    object.x < player.x + player.width &&
-                    object.x + object.size > player.x &&
-                    object.y < player.y + player.height &&
-                    object.y + object.size > player.y
-                ) {
+                // Check for collision with player
+                if (object.y + object.size >= player.y && object.x < player.x + player.width && object.x + object.size > player.x) {
                     if (object.type === "bomb") {
-                        endGame(); // Game over
+                        gameOver();
                     } else {
                         score += object.points;
                         document.getElementById('score').innerText = score;
                     }
-                    fallingObjects = fallingObjects.filter(o => o !== object); // Remove object
+                    fallingObjects.splice(index, 1);
                 }
             });
 
-            // Remove objects that fall off the screen
-            fallingObjects = fallingObjects.filter(o => o.y < canvas.height);
-
-            if (score > topScore) {
-                topScore = score;
-                document.getElementById('topScore').innerText = topScore;
-                localStorage.setItem('topScore', topScore);
-            }
+            player.draw();
         }
 
         function createFallingObject() {
             fallingObjects.push(new FallingObject());
         }
 
-        function handleKeyPress(event) {
-            if (event.key === "ArrowLeft") {
-                player.move('left');
-            } else if (event.key === "ArrowRight") {
-                player.move('right');
-            }
-        }
-
         function increaseScore() {
-            if (isGameRunning) {
-                score++;
-                document.getElementById('score').innerText = score;
-            }
+            score += 1;
+            document.getElementById('score').innerText = score;
         }
 
-        function endGame() {
-            clearInterval(gameInterval);
-            clearInterval(objectInterval);
-            isGameRunning = false;
-            updateLeaderboard(score); // Update leaderboard after game ends
-            alert("Game Over! Your score is: " + score);
-            document.querySelector('.start-screen').style.display = 'block';
-            canvas.style.display = 'none';
-        }
-
-        // Leaderboard Functions
-        function updateLeaderboard(currentScore) {
-            const playerName = localStorage.getItem('playerName');
-            
-            if (!playerName) {
-                alert("Player name is required to save scores.");
-                return;
+        function gameOver() {
+            if (score > topScore) {
+                topScore = score;
+                localStorage.setItem('topScore', topScore);
             }
 
-            const existingPlayerIndex = highScores.findIndex(score => score.name === playerName);
-
-            if (existingPlayerIndex !== -1) {
-                if (highScores[existingPlayerIndex].score < currentScore) {
-                    highScores[existingPlayerIndex].score = currentScore;
-                }
+            // Save the score in localStorage (Highscore system)
+            if (highScores.length < 5) {
+                highScores.push({ name: localStorage.getItem('playerName'), score });
             } else {
-                highScores.push({ name: playerName, score: currentScore });
-            }
-
-            highScores.sort((a, b) => b.score - a.score);
-            if (highScores.length > 10) {
-                highScores = highScores.slice(0, 10);
+                highScores.push({ name: localStorage.getItem('playerName'), score });
+                highScores.sort((a, b) => b.score - a.score);
+                highScores = highScores.slice(0, 5);
             }
 
             localStorage.setItem('highScores', JSON.stringify(highScores));
-            displayLeaderboard();
+            clearInterval(gameInterval);
+            clearInterval(objectInterval);
+            isGameRunning = false;
+            document.getElementById('topScore').innerText = topScore;
+            showScoreboard();
         }
 
-        function displayLeaderboard() {
-            const scoreList = document.getElementById('scoreList');
-            scoreList.innerHTML = ''; 
-
-            highScores.forEach(score => {
-                let li = document.createElement('li');
-                li.innerText = `${score.name}: ${score.score}`;
-                scoreList.appendChild(li);
-            });
-        }
-
+        // Display the Scoreboard
         function showScoreboard() {
-            if (isGameRunning) {
-                endGame();
-            }
-            displayLeaderboard();
-            document.querySelector('.start-screen').style.display = 'none';
+            let scoreList = document.getElementById('scoreList');
+            scoreList.innerHTML = '';
+            highScores.forEach((entry, index) => {
+                let scoreItem = document.createElement('li');
+                scoreItem.innerText = `${index + 1}. ${entry.name}: ${entry.score}`;
+                scoreList.appendChild(scoreItem);
+            });
             document.getElementById('scoreboardMenu').style.display = 'block';
         }
 
         function closeScoreboard() {
             document.getElementById('scoreboardMenu').style.display = 'none';
-            document.querySelector('.start-screen').style.display = 'block';
         }
 
         function backToMainMenu() {
-            if (isGameRunning) {
-                endGame();
-            }
+            clearInterval(gameInterval);
+            clearInterval(objectInterval);
+            document.querySelector(".start-screen").style.display = "block"; // Show start screen
             document.getElementById('scoreboardMenu').style.display = 'none';
-            document.getElementById('changelogMenu').style.display = 'none';
-            document.getElementById('adminMenu').style.display = 'none';
-            document.querySelector('.start-screen').style.display = 'block';
         }
 
-        // Changelog Functions
-        function showChangelog() {
-            document.getElementById('changelogMenu').style.display = 'block';
-            document.querySelector('.start-screen').style.display = 'none';
-            let changelogList = document.getElementById('changelogList');
-            changelogList.innerHTML = "";
-            changelogMessages.forEach(function(message) {
-                let li = document.createElement('li');
-                li.textContent = message;
-                changelogList.appendChild(li);
-            });
-        }
-
-        function closeChangelog() {
-            document.getElementById('changelogMenu').style.display = 'none';
-            document.querySelector('.start-screen').style.display = 'block';
-        }
-
-        // Admin Menu Functions
+        // Admin Menu
         function showAdminMenu() {
             document.getElementById('adminMenu').style.display = 'block';
-            document.querySelector('.start-screen').style.display = 'none';
+        }
+
+        function closeAdminMenu() {
+            document.getElementById('adminMenu').style.display = 'none';
         }
 
         function checkPassword() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === "admin123") {
+            let password = document.getElementById('adminPassword').value;
+            if (password === 'admin123') {
                 document.getElementById('adminActions').style.display = 'block';
                 document.getElementById('adminError').style.display = 'none';
             } else {
                 document.getElementById('adminError').style.display = 'block';
-                document.getElementById('adminError').innerText = "Incorrect password!";
+                document.getElementById('adminError').innerText = 'Incorrect Password!';
+            }
+        }
+
+        function resetScoreboard() {
+            if (confirm("Are you sure you want to reset the scoreboard?")) {
+                localStorage.removeItem('highScores');
+                highScores = [];
+                alert("Scoreboard has been reset.");
+                showScoreboard();
             }
         }
 
         function applyGameSettings() {
-            const speed = document.getElementById('fallingSpeed').value;
-            fallingSpeed = speed;
-            alert(`Game speed set to ${fallingSpeed}`);
+            let newSpeed = document.getElementById('fallingSpeed').value;
+            if (newSpeed >= 1 && newSpeed <= 10) {
+                fallingSpeed = newSpeed;
+                alert("Game settings updated.");
+            } else {
+                alert("Speed should be between 1 and 10.");
+            }
         }
 
         function addChangelogMessage() {
-            const newMessage = document.getElementById('newChangelogMessage').value;
-            changelogMessages.push(newMessage);
-            localStorage.setItem('changelogMessages', JSON.stringify(changelogMessages));
-            alert('New changelog message added');
+            let newMessage = document.getElementById('newChangelogMessage').value;
+            if (newMessage) {
+                changelogMessages.push(newMessage);
+                localStorage.setItem('changelogMessages', JSON.stringify(changelogMessages));
+                showChangelog();
+            } else {
+                alert("Please enter a message.");
+            }
         }
 
         function deleteChangelogMessages() {
             changelogMessages = [];
             localStorage.setItem('changelogMessages', JSON.stringify(changelogMessages));
-            alert('Changelog messages deleted');
+            showChangelog();
         }
 
-        function resetScoreboard() {
-            highScores = [];
-            localStorage.setItem('highScores', JSON.stringify(highScores));
-            alert('Scoreboard reset');
+        function showChangelog() {
+            let changelogList = document.getElementById('changelogList');
+            changelogList.innerHTML = '';
+            changelogMessages.forEach((message) => {
+                let changelogItem = document.createElement('li');
+                changelogItem.innerText = message;
+                changelogList.appendChild(changelogItem);
+            });
+            document.getElementById('changelogMenu').style.display = 'block';
+        }
+
+        function closeChangelog() {
+            document.getElementById('changelogMenu').style.display = 'none';
         }
     </script>
 
