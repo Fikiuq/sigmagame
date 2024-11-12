@@ -1,101 +1,55 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-// Achtergrondafbeelding
-const bgImage = new Image();
-bgImage.src = 'b.png';
-
-// Spelvariabelen
-let backgroundX = 0;
-let player;
-let obstacles = [];
-let score = 0;
-let isGameOver = false;
-
-class Player {
-    constructor() {
-        this.width = 30;
-        this.height = 30;
-        this.x = 50;
-        this.y = canvas.height - this.height - 10;
-        this.yVelocity = 0;
-        this.gravity = 0.5;
-    }
-    draw() {
-        ctx.fillStyle = "blue";
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
-    jump() {
-        if (this.y === canvas.height - this.height - 10) this.yVelocity = -10;
-    }
-    update() {
-        this.y += this.yVelocity;
-        this.yVelocity += this.gravity;
-        if (this.y > canvas.height - this.height - 10) this.y = canvas.height - this.height - 10;
-        this.draw();
-    }
-}
-
-class Obstacle {
-    constructor() {
-        this.width = 20;
-        this.height = 20;
-        this.x = canvas.width;
-        this.y = canvas.height - this.height - 10;
-        this.speed = 5;
-    }
-    draw() {
-        ctx.fillStyle = "red";
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
-    update() {
-        this.x -= this.speed;
-        this.draw();
-    }
-}
-
-function startGame() {
-    player = new Player();
-    obstacles = [];
-    score = 0;
-    isGameOver = false;
-    setInterval(() => obstacles.push(new Obstacle()), 1500);
-    gameLoop();
-}
-
-function gameLoop() {
-    if (isGameOver) return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SigmaGames | Home</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <h1 class="logo">SigmaGames</h1>
+        <nav class="nav">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="#games" class="nav-link">Games</a>
+            <a href="#about" class="nav-link">About</a>
+            <a href="#contact" class="nav-link">Contact</a>
+        </nav>
+    </header>
     
-    backgroundX -= 2;
-    if (backgroundX <= -canvas.width) backgroundX = 0;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(bgImage, backgroundX, 0, canvas.width, canvas.height);
-    ctx.drawImage(bgImage, backgroundX + canvas.width, 0, canvas.width, canvas.height);
-
-    player.update();
-
-    obstacles.forEach((obstacle, index) => {
-        obstacle.update();
-        if (player.x < obstacle.x + obstacle.width && player.x + player.width > obstacle.x && player.y < obstacle.y + obstacle.height && player.y + player.height > obstacle.y) {
-            isGameOver = true;
-            alert("Game Over");
-        }
-        if (obstacle.x + obstacle.width < 0) {
-            obstacles.splice(index, 1);
-            score++;
-        }
-    });
-
-    ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
-    ctx.fillText(`Score: ${score}`, 10, 30);
-
-    requestAnimationFrame(gameLoop);
-}
-
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') player.jump();
-});
-
-startGame();
+    <main class="main-content">
+        <section class="intro">
+            <h2>Welcome to SigmaGames</h2>
+            <p>Dive into a world of excitement and challenge! Discover games that are both thrilling and fun for all ages. Choose your game and start the adventure today.</p>
+        </section>
+        
+        <section id="games" class="games-section">
+            <div class="game-card">
+                <h3>Game 1: Avoid Falling Objects</h3>
+                <p>Can you dodge all the bombs while collecting as many stars as possible?</p>
+                <a href="game1.html" class="play-btn">Play Now</a>
+            </div>
+            <div class="game-card">
+                <h3>Game 2: Endless Runner</h3>
+                <p>Run and jump over obstacles in this exciting endless runner game!</p>
+                <a href="game2.html" class="play-btn">Play Now</a>
+            </div>
+        </section>
+        
+        <section id="about" class="about-section">
+            <h2>About SigmaGames</h2>
+            <p>At SigmaGames, we are dedicated to creating fun and engaging games that challenge players of all skill levels. Whether you're looking for a quick escape or a serious challenge, we have something for you.</p>
+        </section>
+        
+        <section id="contact" class="contact-section">
+            <h2>Contact Us</h2>
+            <p>If you have any questions, feedback, or suggestions, feel free to reach out to us!</p>
+            <p>Email: support@sigmagames.com</p>
+        </section>
+    </main>
+    
+    <footer class="footer">
+        <p>&copy; 2024 SigmaGames. All rights reserved.</p>
+    </footer>
+</body>
+</html>
