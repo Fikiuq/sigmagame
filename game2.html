@@ -6,7 +6,7 @@
     <title>Game 2: Endless Runner</title>
     <style>
         body { margin: 0; overflow: hidden; }
-        canvas { display: block; background-image: url('b.png'); background-size: cover; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
@@ -17,6 +17,10 @@
         // Canvas setup
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+
+        // Background image setup
+        const backgroundImage = new Image();
+        backgroundImage.src = 'b.png';
 
         // Game Variables
         let player;
@@ -101,14 +105,15 @@
         function gameLoop() {
             if (isGameOver) return;
 
-            // Background movement
+            // Scroll background
             backgroundX -= 2;
-            if (backgroundX <= -canvas.width) {
-                backgroundX = 0;
-            }
+            if (backgroundX <= -canvas.width) backgroundX = 0;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(document.createElement('img').src = 'b.png', backgroundX, 0, canvas.width, canvas.height);
-            ctx.drawImage(document.createElement('img').src = 'b.png', backgroundX + canvas.width, 0, canvas.width, canvas.height);
+
+            // Draw background twice for seamless scrolling
+            ctx.drawImage(backgroundImage, backgroundX, 0, canvas.width, canvas.height);
+            ctx.drawImage(backgroundImage, backgroundX + canvas.width, 0, canvas.width, canvas.height);
 
             // Update and draw player and obstacles
             player.update();
