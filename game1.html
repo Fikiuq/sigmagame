@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game 1: Avoid Falling Objects</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+        let canvas = document.getElementById('gameCanvas');
+        let ctx = canvas.getContext('2d');
+        let player;
+        let fallingObjects = [];
+        let score = 0;
+        let isGameRunning = true;
+        let keyState = {};
+
+        function Player() {
+            this.x = canvas.width / 2;
+            this.y = canvas.height - 30;
+            this.width = 30;
+            this.height = 30;
+            this.speed = 5;
+            this.emoji = "🧑";
+            this.draw = function() { ctx.font = "30px Arial"; ctx.fillText(this.emoji, this.x, this.y); };
+            this.updatePosition = function() {
+                if (keyState['ArrowLeft'] && this.x > 0) { this.x -= this.speed; }
+                if (keyState['ArrowRight'] && this.x < canvas.width - this.width) { this.x += this.speed; }
+            };
+        }
+
+        function FallingObject() {
+            this.x = Math.random() * canvas.width;
+            this.y = 0;
+            this.size = 30;
+            this.speed = Math.random() * 2 + 1;
+            this.emoji = Math.random() < 0.8 ? "💣" : "⭐";
+            this.points = this.emoji === "💣" ? -1 : 50;
+            this.update = function() { this.y += this.speed; };
+            this.draw = function() { ctx.font = "30px Arial"; ctx.fillText(this.emoji, this.x, this.y); };
+        }
+
+        function startGame() {
+            player = new Player();
+            setInterval(gameLoop, 1000 / 60);
+            setInterval(() => { if (isGameRunning) fallingObjects.push(new FallingObject()); }, 1000);
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            player.updatePosition();
+            player.draw();
+            fallingObjects.forEach((obj, i) => {
+                obj.update();
+                obj.draw();
+                if (obj.x < player.x + player.width && obj.x + obj.size > player.x &&
+                    obj.y < player.y + player.height && obj.y + obj.size > player.y) {
+                    if (obj.emoji === "💣") endGame(); else score += obj.points;
+                    fallingObjects.splice(i, 1);
+                }
+            });
+            fallingObjects = fallingObjects.filter(o => o.y < canvas.height);
+        }
+
+        function endGame() {
+            isGameRunning = false;
+            alert(`Game Over! Your score: ${score}`);
+        }
+
+        window.addEventListener('keydown', e => { keyState[e.key] = true; });
+        window.addEventListener('keyup', e => { keyState[e.key] = false; });
+        startGame();
+    </script>
+</body>
+</html>
