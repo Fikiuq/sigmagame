@@ -1,3 +1,4 @@
+/* Basisstijl voor de pagina */
 body {
     margin: 0;
     padding: 0;
@@ -6,11 +7,11 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #87ceeb;
+    background-color: #87ceeb; /* Blauwe achtergrond */
 }
 
 .menu-container {
-    background-image: url('bmain.png');
+    background-image: url('bmain.png'); /* Achtergrond van het menu */
     background-size: cover;
     background-position: center;
     color: white;
@@ -20,7 +21,7 @@ body {
     width: 80%;
     max-width: 800px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px); /* Vervaagde achtergrond */
 }
 
 h1 {
