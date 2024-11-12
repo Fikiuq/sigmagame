@@ -1,22 +1,101 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kies je Game</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-    <div class="menu-container">
-        <h1>Welkom bij de Game-Selectie!</h1>
-        <p>Kies een game om te starten:</p>
+// Achtergrondafbeelding
+const bgImage = new Image();
+bgImage.src = 'b.png';
 
-        <div class="game-selection">
-            <a href="game1.html" class="game-button">Game 1: Falling Objects</a>
-            <a href="game2.html" class="game-button">Game 2: Endless Runner</a>
-        </div>
-    </div>
+// Spelvariabelen
+let backgroundX = 0;
+let player;
+let obstacles = [];
+let score = 0;
+let isGameOver = false;
 
-</body>
-</html>
+class Player {
+    constructor() {
+        this.width = 30;
+        this.height = 30;
+        this.x = 50;
+        this.y = canvas.height - this.height - 10;
+        this.yVelocity = 0;
+        this.gravity = 0.5;
+    }
+    draw() {
+        ctx.fillStyle = "blue";
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+    jump() {
+        if (this.y === canvas.height - this.height - 10) this.yVelocity = -10;
+    }
+    update() {
+        this.y += this.yVelocity;
+        this.yVelocity += this.gravity;
+        if (this.y > canvas.height - this.height - 10) this.y = canvas.height - this.height - 10;
+        this.draw();
+    }
+}
+
+class Obstacle {
+    constructor() {
+        this.width = 20;
+        this.height = 20;
+        this.x = canvas.width;
+        this.y = canvas.height - this.height - 10;
+        this.speed = 5;
+    }
+    draw() {
+        ctx.fillStyle = "red";
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+    update() {
+        this.x -= this.speed;
+        this.draw();
+    }
+}
+
+function startGame() {
+    player = new Player();
+    obstacles = [];
+    score = 0;
+    isGameOver = false;
+    setInterval(() => obstacles.push(new Obstacle()), 1500);
+    gameLoop();
+}
+
+function gameLoop() {
+    if (isGameOver) return;
+    
+    backgroundX -= 2;
+    if (backgroundX <= -canvas.width) backgroundX = 0;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bgImage, backgroundX, 0, canvas.width, canvas.height);
+    ctx.drawImage(bgImage, backgroundX + canvas.width, 0, canvas.width, canvas.height);
+
+    player.update();
+
+    obstacles.forEach((obstacle, index) => {
+        obstacle.update();
+        if (player.x < obstacle.x + obstacle.width && player.x + player.width > obstacle.x && player.y < obstacle.y + obstacle.height && player.y + player.height > obstacle.y) {
+            isGameOver = true;
+            alert("Game Over");
+        }
+        if (obstacle.x + obstacle.width < 0) {
+            obstacles.splice(index, 1);
+            score++;
+        }
+    });
+
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.fillText(`Score: ${score}`, 10, 30);
+
+    requestAnimationFrame(gameLoop);
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') player.jump();
+});
+
+startGame();
