@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Select Menu 🎮✨</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        .button { font-size: 20px; padding: 15px 30px; margin: 20px; cursor: pointer; }
-    </style>
+    <title>Kies je Game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Welcome to the Game Hub 🎮✨</h1>
-    <p>Select a game to play:</p>
-    
-    <!-- Game 1 Button -->
-    <button class="button" onclick="window.location.href='game1.html'">Play Game 1</button>
-    
-    <!-- Game 2 Button -->
-    <button class="button" onclick="window.location.href='game2.html'">Play Game 2</button>
+
+    <div class="menu-container">
+        <h1>Welkom bij de Game-Selectie!</h1>
+        <p>Kies een game om te starten:</p>
+
+        <div class="game-selection">
+            <a href="game1.html" class="game-button">Game 1: Falling Objects</a>
+            <a href="game2.html" class="game-button">Game 2: Endless Runner</a>
+        </div>
+    </div>
 
 </body>
 </html>
