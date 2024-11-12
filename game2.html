@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game 2: Endless Runner</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; background-image: url('b.png'); background-size: cover; }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game Variables
+        let player;
+        let obstacles = [];
+        let score = 0;
+        let isJumping = false;
+        let isGameOver = false;
+        let backgroundX = 0;
+
+        // Player Object
+        class Player {
+            constructor() {
+                this.width = 30;
+                this.height = 30;
+                this.x = 50;
+                this.y = canvas.height - this.height - 10;
+                this.yVelocity = 0;
+                this.gravity = 0.5;
+            }
+
+            draw() {
+                ctx.fillStyle = "blue";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            jump() {
+                if (!isJumping) {
+                    this.yVelocity = -10;
+                    isJumping = true;
+                }
+            }
+
+            update() {
+                this.y += this.yVelocity;
+                this.yVelocity += this.gravity;
+
+                if (this.y >= canvas.height - this.height - 10) {
+                    this.y = canvas.height - this.height - 10;
+                    this.yVelocity = 0;
+                    isJumping = false;
+                }
+                this.draw();
+            }
+        }
+
+        // Obstacle Object
+        class Obstacle {
+            constructor() {
+                this.width = 20;
+                this.height = 20;
+                this.x = canvas.width;
+                this.y = canvas.height - this.height - 10;
+                this.speed = 5;
+            }
+
+            draw() {
+                ctx.fillStyle = "red";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            update() {
+                this.x -= this.speed;
+                this.draw();
+            }
+        }
+
+        function startGame() {
+            player = new Player();
+            obstacles = [];
+            score = 0;
+            isGameOver = false;
+
+            // Start generating obstacles
+            setInterval(() => {
+                if (!isGameOver) obstacles.push(new Obstacle());
+            }, 1500);
+
+            // Start the game loop
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (isGameOver) return;
+
+            // Background movement
+            backgroundX -= 2;
+            if (backgroundX <= -canvas.width) {
+                backgroundX = 0;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(document.createElement('img').src = 'b.png', backgroundX, 0, canvas.width, canvas.height);
+            ctx.drawImage(document.createElement('img').src = 'b.png', backgroundX + canvas.width, 0, canvas.width, canvas.height);
+
+            // Update and draw player and obstacles
+            player.update();
+            obstacles.forEach((obstacle, index) => {
+                obstacle.update();
+
+                // Check for collision
+                if (
+                    player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y
+                ) {
+                    endGame();
+                }
+
+                // Remove off-screen obstacles
+                if (obstacle.x + obstacle.width < 0) {
+                    obstacles.splice(index, 1);
+                    score++;
+                }
+            });
+
+            // Display score
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+            ctx.fillText(`Score: ${score}`, 10, 30);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            isGameOver = true;
+            alert(`Game Over! Your final score is: ${score}`);
+        }
+
+        // Event listener for jump
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') player.jump();
+        });
+
+        // Start the game
+        startGame();
+
+    </script>
+</body>
+</html>
