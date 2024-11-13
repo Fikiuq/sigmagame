@@ -5,36 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SigmaGames</title>
     <style>
+        /* Basis layout */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-image: url('bmain.jpg');
             background-size: cover;
-            color: white;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.75);
+            padding: 20px 40px;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 90%;
             text-align: center;
         }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #ffeb3b;
+        }
+
         .search-bar {
-            margin: 20px;
+            margin: 20px 0;
+            position: relative;
         }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            color: #333;
+        }
+
         .game-list {
-            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
         }
+
         .game-item {
-            font-size: 1.2em;
+            background-color: #333;
+            color: #ffeb3b;
+            width: 45%;
+            padding: 20px;
             margin: 10px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 1.2em;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        .game-item:hover {
+            background-color: #444;
+            transform: scale(1.05);
+        }
+
+        .game-item a {
+            color: inherit;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to SigmaGames</h1>
-    <p>Search and play your favorite games!</p>
+    <div class="container">
+        <h1>Welcome to SigmaGames</h1>
+        <p>Search and play your favorite games!</p>
 
-    <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search games..." onkeyup="searchGames()">
-    </div>
+        <!-- Zoekbalk -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search games..." onkeyup="searchGames()">
+        </div>
 
-    <div class="game-list" id="gameList">
-        <div class="game-item"><a href="pacman.html">Pacman</a></div>
-        <!-- Voeg hier later meer games toe -->
+        <!-- Game lijst -->
+        <div class="game-list" id="gameList">
+            <div class="game-item"><a href="pacman.html">Pacman</a></div>
+            <!-- Hier kun je later nieuwe games toevoegen -->
+        </div>
     </div>
 
     <script>
@@ -43,7 +107,7 @@
             const games = document.querySelectorAll('.game-item');
             games.forEach(game => {
                 if (game.innerText.toLowerCase().includes(input)) {
-                    game.style.display = "";
+                    game.style.display = "block";
                 } else {
                     game.style.display = "none";
                 }
