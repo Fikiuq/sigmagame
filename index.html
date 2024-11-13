@@ -3,25 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SigmaGames - Main Menu</title>
-    <link rel="stylesheet" href="style.css">
+    <title>SigmaGames</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('bmain.jpg');
+            background-size: cover;
+            color: white;
+            text-align: center;
+        }
+        .search-bar {
+            margin: 20px;
+        }
+        .game-list {
+            margin-top: 20px;
+        }
+        .game-item {
+            font-size: 1.2em;
+            margin: 10px;
+        }
+    </style>
 </head>
 <body>
-    <div class="menu-container">
-        <h1>SigmaGames</h1>
-        <p class="game-title">Kies je Game</p>
+    <h1>Welcome to SigmaGames</h1>
+    <p>Search and play your favorite games!</p>
 
-        <div class="game-button">
-            <a href="game1.html">Adventure Quest</a>
-        </div>
-        <div class="game-button">
-            <a href="game2.html">Runner Challenge</a>
-        </div>
-
-        <div class="footer">
-            <p>Welkom bij SigmaGames! Veel plezier met spelen!</p>
-            <p>© 2024 SigmaGames - Alle rechten voorbehouden.</p>
-        </div>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search games..." onkeyup="searchGames()">
     </div>
+
+    <div class="game-list" id="gameList">
+        <div class="game-item"><a href="pacman.html">Pacman</a></div>
+        <!-- Voeg hier later meer games toe -->
+    </div>
+
+    <script>
+        function searchGames() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const games = document.querySelectorAll('.game-item');
+            games.forEach(game => {
+                if (game.innerText.toLowerCase().includes(input)) {
+                    game.style.display = "";
+                } else {
+                    game.style.display = "none";
+                }
+            });
+        }
+    </script>
 </body>
 </html>
