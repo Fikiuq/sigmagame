@@ -18,48 +18,51 @@ body {
 }
 
 .container {
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 30px 50px;
-    border-radius: 12px;
-    max-width: 700px;
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 40px 60px;
+    border-radius: 15px;
+    max-width: 800px;
     width: 90%;
     text-align: center;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
-    animation: fadeIn 1s ease;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+    animation: slideIn 1s ease;
 }
 
 h1 {
-    font-size: 2.8em;
-    margin-bottom: 20px;
-    color: #ffd700;
+    font-size: 3em;
+    margin-bottom: 15px;
+    color: #ffeb3b;
     text-transform: uppercase;
     letter-spacing: 2px;
 }
 
 p {
     font-size: 1.2em;
-    margin-bottom: 20px;
-    color: #cccccc;
+    margin-bottom: 30px;
+    color: #d3d3d3;
 }
 
 .search-bar {
     margin: 20px 0;
     position: relative;
+    width: 100%;
 }
 
 #searchInput {
     width: 100%;
-    padding: 12px 20px;
-    font-size: 1.1em;
+    padding: 15px 20px;
+    font-size: 1.2em;
     border-radius: 30px;
-    border: none;
+    border: 2px solid transparent;
     outline: none;
     color: #333;
-    transition: box-shadow 0.3s;
+    transition: all 0.3s ease;
+    background-color: #fff;
 }
 
 #searchInput:focus {
-    box-shadow: 0px 0px 10px #ffd700;
+    border-color: #ffeb3b;
+    box-shadow: 0px 0px 12px rgba(255, 235, 59, 0.5);
 }
 
 .game-list {
@@ -67,28 +70,23 @@ p {
     flex-wrap: wrap;
     gap: 20px;
     justify-content: center;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
 .game-item {
-    background-color: #444;
-    color: #ffd700;
-    width: 45%;
-    padding: 15px;
-    margin: 10px;
+    background-color: #333;
+    color: #ffeb3b;
+    width: calc(50% - 20px);
+    padding: 20px;
     border-radius: 12px;
-    text-decoration: none;
-    font-size: 1.2em;
-    transition: transform 0.3s, background-color 0.3s;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
     text-align: center;
-    animation: fadeIn 0.5s ease;
-}
-
-.game-item:hover {
-    background-color: #555;
-    transform: scale(1.05);
-    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+    font-size: 1.3em;
+    transition: transform 0.3s, background-color 0.3s;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .game-item a {
@@ -96,8 +94,14 @@ p {
     text-decoration: none;
 }
 
+.game-item:hover {
+    background-color: #444;
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5);
+}
+
 /* Animaties */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
