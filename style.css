@@ -18,51 +18,92 @@ body {
     background-position: center;
 }
 
-/* Menu Container */
-.menu-container {
+/* Game Container */
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 40px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 30px;
     border-radius: 10px;
     width: 90%;
-    max-width: 500px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    max-width: 600px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
 }
 
-.menu-container h1 {
-    font-size: 3rem;
-    margin-bottom: 20px;
-    color: #4db8ff;
+/* Heading Styling */
+.game-container h1,
+.game-container h2 {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-bottom: 15px;
 }
 
-.game-title {
+/* Top Score Display */
+.top-score {
     font-size: 1.5rem;
-    margin-bottom: 30px;
+    color: #4db8ff;
+    margin-bottom: 20px;
 }
 
-/* Game Button Styling */
-.game-button {
-    margin: 10px 0;
+/* Canvas Styling */
+#gameCanvas {
+    border: 2px solid #fff;
+    border-radius: 10px;
+    margin-bottom: 20px;
 }
 
-.game-button a {
-    display: inline-block;
-    text-decoration: none;
+/* Score Display */
+.score-display {
+    font-size: 1.2rem;
+    color: #ffdd57;
+}
+
+/* Game Over Screen */
+.game-over-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.85);
+    padding: 40px;
+    border-radius: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 400px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
+}
+
+.game-over-screen h2 {
+    font-size: 2rem;
+    color: #ff4e4e;
+    margin-bottom: 20px;
+}
+
+/* Buttons Styling */
+button {
     background-color: #3498db;
     color: white;
-    padding: 15px 30px;
-    font-size: 1.2rem;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border: none;
     border-radius: 5px;
+    cursor: pointer;
     transition: background-color 0.3s ease;
+    margin: 10px;
 }
 
-.game-button a:hover {
+button:hover {
     background-color: #2980b9;
 }
 
-/* Footer Styling */
-.footer {
-    margin-top: 40px;
-    font-size: 0.9rem;
-    color: #ccc;
+/* Back to Main Menu Link */
+a button {
+    background-color: #2ecc71;
+}
+
+a button:hover {
+    background-color: #27ae60;
 }
