@@ -193,11 +193,11 @@
                     if (bot.y < player.y) bot.y += bot.speed;
                     else bot.y -= bot.speed;
                 } else {
-                    // Verplaats bots die niet agressief zijn
-                    if (bot.x < player.x) bot.x += bot.speed;
+                    // Niet-agressieve bots bewegen weg van de speler
+                    if (bot.x > player.x) bot.x += bot.speed;
                     else bot.x -= bot.speed;
 
-                    if (bot.y < player.y) bot.y += bot.speed;
+                    if (bot.y > player.y) bot.y += bot.speed;
                     else bot.y -= bot.speed;
                 }
             });
