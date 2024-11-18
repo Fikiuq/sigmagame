@@ -153,6 +153,7 @@
                     speed: 1 + Math.random(),
                     img: botImg,
                     isAggressive: false,
+                    isEatingCandy: false
                 };
                 bots.push(bot);
             }
@@ -160,14 +161,16 @@
 
         // Maak snoepjes
         function generateCandies(num) {
-            for (let i = 0; i < num; i++) {
-                const candy = {
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    width: 30,
-                    height: 30,
-                };
-                candies.push(candy);
+            if (candies.length < 4) {
+                for (let i = 0; i < num; i++) {
+                    const candy = {
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        width: 30,
+                        height: 30,
+                    };
+                    candies.push(candy);
+                }
             }
         }
 
@@ -179,11 +182,18 @@
             if (keys['ArrowRight'] && player.x + player.width < canvas.width) player.x += player.speed;
         }
 
-        // Beweeg bots
+        // Beweeg bots (katten en honden)
         function moveBots() {
             bots.forEach(bot => {
                 if (bot.isAggressive) {
                     // Agressieve bots jagen op de speler
+                    if (bot.x < player.x) bot.x += bot.speed;
+                    else bot.x -= bot.speed;
+
+                    if (bot.y < player.y) bot.y += bot.speed;
+                    else bot.y -= bot.speed;
+                } else {
+                    // Verplaats bots die niet agressief zijn
                     if (bot.x < player.x) bot.x += bot.speed;
                     else bot.x -= bot.speed;
 
@@ -205,6 +215,7 @@
                     ) {
                         // Bot eet snoepje
                         bot.isAggressive = true;
+                        bot.isEatingCandy = true;
                         bot.width += 20;
                         bot.height += 20;
                         candies.splice(index, 1);
@@ -259,7 +270,7 @@
         // Volgende frame
         function update() {
             if (gameOver) {
-                alert(`Game Over! Je score is ${score}.`);
+                alert('Game over!');
                 return;
             }
 
@@ -267,21 +278,12 @@
             moveBots();
             checkCandyCollision();
             checkBotCollision();
-
-            // Score verhogen en snoepjes/bots toevoegen
-            score++;
-            if (score % 500 === 0) {
-                generateBots(1);
-            }
-            if (score % 300 === 0) {
-                generateCandies(1);
-            }
-
             draw();
+
             requestAnimationFrame(update);
         }
 
-        // Start game wanneer "Start"-knop wordt geklikt
+        // Starten
         startButton.addEventListener('click', startGame);
     </script>
 </body>
