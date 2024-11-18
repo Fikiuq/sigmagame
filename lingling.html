@@ -14,6 +14,37 @@
             overflow: hidden;
         }
 
+        #startScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 5px black;
+        }
+
+        #startScreen h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        #startScreen button {
+            font-size: 1.5em;
+            padding: 10px 20px;
+            color: white;
+            background-color: #d4af37;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        #startScreen button:hover {
+            background-color: #e5c26e;
+        }
+
         canvas {
             display: block;
             margin: 0 auto;
@@ -29,15 +60,54 @@
             color: #d4af37;
             text-shadow: 1px 1px 3px #000;
         }
+
+        /* Footer styles */
+        .footer {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #d4af37;
+            font-size: 1em;
+            text-shadow: 1px 1px 3px #000;
+        }
+
+        .footer-right {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: #d4af37;
+            font-size: 0.8em;
+            text-shadow: 1px 1px 3px #000;
+        }
     </style>
 </head>
 <body>
+    <!-- Startscherm -->
+    <div id="startScreen">
+        <h1>Lingling's Avontuur</h1>
+        <p>Probeer de honden en katten op te eten, maar pas op dat ze niet groter worden!</p>
+        <button id="startButton">Start</button>
+    </div>
+
+    <!-- Scorebord en canvas voor het spel -->
     <div class="scoreboard">Score: <span id="score">0</span></div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <!-- Footer secties -->
+    <div class="footer">
+        © 2024 - Sigma Games
+    </div>
+    <div class="footer-right">
+        Made by Nisse_S | Player character by Loopis | Idea by Ling Ling
+    </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const startButton = document.getElementById('startButton');
 
         // Afbeeldingen
         const playerImg = new Image();
@@ -47,10 +117,8 @@
         const candyImg = new Image();
         candyImg.src = 'candy.png';
 
-        // Speler
+        // Speler en bots
         let player = { x: 400, y: 300, width: 50, height: 50, speed: 5 };
-
-        // Honden/katten
         let bots = [];
         let candies = [];
         let score = 0;
@@ -61,31 +129,46 @@
         window.addEventListener('keydown', (e) => keys[e.key] = true);
         window.addEventListener('keyup', (e) => keys[e.key] = false);
 
+        // Start het spel
+        function startGame() {
+            startScreen.style.display = 'none';
+            canvas.style.display = 'block';
+            document.querySelector('.scoreboard').style.display = 'block';
+
+            generateBots(3);
+            generateCandies(4);
+            update();
+        }
+
         // Maak bots
-        function spawnBot() {
-            const botImg = new Image();
-            botImg.src = botImgs[Math.floor(Math.random() * botImgs.length)];
-            const bot = {
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                width: 50,
-                height: 50,
-                speed: 1 + Math.random(),
-                img: botImg,
-                isAggressive: false,
-            };
-            bots.push(bot);
+        function generateBots(num) {
+            for (let i = 0; i < num; i++) {
+                const botImg = new Image();
+                botImg.src = botImgs[Math.floor(Math.random() * botImgs.length)];
+                const bot = {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    width: 50,
+                    height: 50,
+                    speed: 1 + Math.random(),
+                    img: botImg,
+                    isAggressive: false,
+                };
+                bots.push(bot);
+            }
         }
 
         // Maak snoepjes
-        function spawnCandy() {
-            const candy = {
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                width: 30,
-                height: 30,
-            };
-            candies.push(candy);
+        function generateCandies(num) {
+            for (let i = 0; i < num; i++) {
+                const candy = {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    width: 30,
+                    height: 30,
+                };
+                candies.push(candy);
+            }
         }
 
         // Beweeg speler
@@ -110,7 +193,7 @@
             });
         }
 
-        // Controle of bots snoep eten
+        // Controleer of bots snoep eten
         function checkCandyCollision() {
             bots.forEach(bot => {
                 candies.forEach((candy, index) => {
@@ -130,7 +213,7 @@
             });
         }
 
-        // Controle of speler bots eet
+        // Controleer of speler bots eet
         function checkBotCollision() {
             bots.forEach((bot, index) => {
                 if (
@@ -165,7 +248,6 @@
             });
 
             // Teken snoepjes
-            ctx.drawImage(candyImg, candy.x, candy.y, candy.width, candy.height);
             candies.forEach(candy => {
                 ctx.drawImage(candyImg, candy.x, candy.y, candy.width, candy.height);
             });
@@ -189,25 +271,18 @@
             // Score verhogen en snoepjes/bots toevoegen
             score++;
             if (score % 500 === 0) {
-                spawnBot();
+                generateBots(1);
             }
             if (score % 300 === 0) {
-                spawnCandy();
+                generateCandies(1);
             }
 
             draw();
             requestAnimationFrame(update);
         }
 
-        // Start game
-        function startGame() {
-            for (let i = 0; i < 3; i++) spawnBot();
-            for (let i = 0; i < 4; i++) spawnCandy();
-            update();
-        }
-
-        // Start het spel
-        startGame();
+        // Start game wanneer "Start"-knop wordt geklikt
+        startButton.addEventListener('click', startGame);
     </script>
 </body>
 </html>
