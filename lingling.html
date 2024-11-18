@@ -128,6 +128,9 @@
         // Obstakels
         let obstacles = [];
 
+        // Timer voor bot grootte
+        let botTimers = [];
+
         // Toetsenregistratie
         const keys = {};
         window.addEventListener('keydown', (e) => keys[e.key] = true);
@@ -221,10 +224,18 @@
                     speed: 1 + Math.random(),
                     img: botImg,
                     isAggressive: false,
-                    isEatingCandy: false
+                    isEatingCandy: false,
+                    eatenTime: 0 // Tijd waarop de bot snoep at
                 };
 
                 bots.push(bot);
+
+                // Zorg ervoor dat de bot na 10 seconden weer kleiner wordt
+                setTimeout(() => {
+                    bot.width = 50;
+                    bot.height = 50;
+                    bot.isAggressive = false;
+                }, 10000);
             }
 
             // Spawn nieuwe bot na een willekeurige tijd
@@ -237,18 +248,21 @@
         // Controleer of bots snoep eten
         function checkCandyCollision() {
             bots.forEach(bot => {
-                candies.forEach((candy, index) => {
+                candies.forEach(candy => {
                     if (
                         bot.x < candy.x + candy.width &&
                         bot.x + bot.width > candy.x &&
                         bot.y < candy.y + candy.height &&
                         bot.y + bot.height > candy.y
                     ) {
-                        // Bot eet snoep
                         candy.x = -100;  // Verwijder snoep
                         candy.y = -100;
+
                         bot.isEatingCandy = true;
-                        bot.isAggressive = true;  // Maak de bot agressief
+                        bot.isAggressive = true;
+                        bot.width *= 1.5;  // Maak de bot groter
+                        bot.height *= 1.5;
+                        bot.eatenTime = Date.now(); // Bewaar tijd waarop snoep werd gegeten
                         score += 100;
                     }
                 });
