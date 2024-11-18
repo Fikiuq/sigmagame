@@ -179,10 +179,10 @@
 
         // Beweeg speler
         function movePlayer() {
-            if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
-            if (keys['ArrowDown'] && player.y + player.height < canvas.height) player.y += player.speed;
-            if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
-            if (keys['ArrowRight'] && player.x + player.width < canvas.width) player.x += player.speed;
+            if (keys['ArrowUp'] && !collidesWithObstacle(player.x, player.y - player.speed)) player.y -= player.speed;
+            if (keys['ArrowDown'] && !collidesWithObstacle(player.x, player.y + player.height + player.speed)) player.y += player.speed;
+            if (keys['ArrowLeft'] && !collidesWithObstacle(player.x - player.speed, player.y)) player.x -= player.speed;
+            if (keys['ArrowRight'] && !collidesWithObstacle(player.x + player.width + player.speed, player.y)) player.x += player.speed;
         }
 
         // Beweeg bots (katten en honden)
@@ -207,6 +207,24 @@
                 // Zorg ervoor dat bots niet buiten het canvas bewegen
                 bot.x = Math.max(0, Math.min(bot.x, canvas.width - bot.width));
                 bot.y = Math.max(0, Math.min(bot.y, canvas.height - bot.height));
+
+                // Bots stoppen bij obstakels
+                for (let obstacle of obstacles) {
+                    if (collidesWithObstacle(bot.x, bot.y)) {
+                        bot.x -= bot.speed;
+                        bot.y -= bot.speed;
+                    }
+                }
+            });
+        }
+
+        // Collisiecontrole met obstakels
+        function collidesWithObstacle(x, y) {
+            return obstacles.some(obstacle => {
+                return x < obstacle.x + obstacle.width &&
+                    x + player.width > obstacle.x &&
+                    y < obstacle.y + obstacle.height &&
+                    y + player.height > obstacle.y;
             });
         }
 
@@ -224,89 +242,72 @@
                     speed: 1 + Math.random(),
                     img: botImg,
                     isAggressive: false,
-                    isEatingCandy: false,
-                    eatenTime: 0 // Tijd waarop de bot snoep at
                 };
-
                 bots.push(bot);
-
-                // Zorg ervoor dat de bot na 10 seconden weer kleiner wordt
-                setTimeout(() => {
-                    bot.width = 50;
-                    bot.height = 50;
-                    bot.isAggressive = false;
-                }, 10000);
             }
 
-            // Spawn nieuwe bot na een willekeurige tijd
-            const spawnTime = Math.random() * (10000 - 3000) + 3000;
-            setTimeout(spawnBot, spawnTime);
+            // Roep de spawnBot functie opnieuw aan
+            setTimeout(spawnBot, Math.random() * 7000 + 3000); // tussen 3 en 10 seconden
         }
 
-        // Check bot-collision met snoepjes
+        // Check collision met snoepjes
         function checkCandyCollision() {
-            bots.forEach(bot => {
-                candies.forEach(candy => {
-                    if (
-                        bot.x < candy.x + candy.width &&
-                        bot.x + bot.width > candy.x &&
-                        bot.y < candy.y + candy.height &&
-                        bot.y + bot.height > candy.y
-                    ) {
-                        candy.x = -100;  // Verwijder snoepje
-                        candy.y = -100;
-                        bot.isEatingCandy = true;
-                        bot.isAggressive = true;
-                        bot.width *= 1.5;  // Maak de bot groter
-                        bot.height *= 1.5;
-                        bot.eatenTime = Date.now();  // Bewaar de tijd waarop snoepje werd gegeten
-                        score += 100;  // Verhoog score
-                    }
-                });
+            candies.forEach((candy, index) => {
+                if (
+                    player.x < candy.x + candy.width &&
+                    player.x + player.width > candy.x &&
+                    player.y < candy.y + candy.height &&
+                    player.y + player.height > candy.y
+                ) {
+                    candies.splice(index, 1); // Snoepje verwijderen
+                    score += 10;
+                    generateCandies(1); // Voeg nieuw snoepje toe
+                }
             });
         }
 
-        // Controleer of bots de speler aanraken
+        // Check collision tussen speler en bots
         function checkBotCollision() {
-            bots.forEach(bot => {
+            bots.forEach((bot, index) => {
                 if (
-                    bot.x < player.x + player.width &&
-                    bot.x + bot.width > player.x &&
-                    bot.y < player.y + player.height &&
-                    bot.y + bot.height > player.y
+                    player.x < bot.x + bot.width &&
+                    player.x + player.width > bot.x &&
+                    player.y < bot.y + bot.height &&
+                    player.y + player.height > bot.y
                 ) {
                     if (bot.isAggressive) {
                         gameOver = true;
+                    } else if (player.width > bot.width) {
+                        // Eet de bot als hij kleiner is
+                        bots.splice(index, 1);
+                        score += 100;
                     }
                 }
             });
         }
 
-        // Teken alles op het canvas
+        // Tekenen van de game elementen
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Teken obstakels
+            // Tekenen van obstakels
             obstacles.forEach(obstacle => {
                 ctx.fillStyle = 'brown';
                 ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             });
 
-            // Teken speler
+            // Tekenen van speler
             ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
 
-            // Teken bots
+            // Tekenen van bots
             bots.forEach(bot => {
                 ctx.drawImage(bot.img, bot.x, bot.y, bot.width, bot.height);
             });
 
-            // Teken snoepjes
+            // Tekenen van snoepjes
             candies.forEach(candy => {
                 ctx.drawImage(candyImg, candy.x, candy.y, candy.width, candy.height);
             });
-
-            // Teken score
-            document.getElementById('score').textContent = score;
 
             // Game over
             if (gameOver) {
@@ -314,9 +315,12 @@
                 ctx.fillStyle = 'red';
                 ctx.fillText('Game Over!', canvas.width / 2 - 80, canvas.height / 2);
             }
+
+            // Score
+            document.getElementById('score').textContent = score;
         }
 
-        // Update alles (bewegingen, controles, teken)
+        // Update de game (verwerking)
         function update() {
             if (gameOver) return;
 
@@ -325,12 +329,12 @@
             checkCandyCollision();
             checkBotCollision();
             draw();
-
             requestAnimationFrame(update);
         }
 
-        // Start het spel bij klikken op Start
+        // Event listener voor de startknop
         startButton.addEventListener('click', startGame);
+
     </script>
 </body>
 </html>
