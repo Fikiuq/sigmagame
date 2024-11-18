@@ -123,6 +123,7 @@
         let candies = [];
         let score = 0;
         let gameOver = false;
+        let gameStartTime = 0;  // Tijdsregistratie vanaf het begin van het spel
 
         // Obstakels
         let obstacles = [];
@@ -138,29 +139,11 @@
             canvas.style.display = 'block';
             document.querySelector('.scoreboard').style.display = 'block';
 
-            generateBots(3);
             generateCandies(4);
             generateObstacles(5); // Voeg 5 obstakels toe
+            gameStartTime = Date.now();  // Zet de starttijd
             update();
-        }
-
-        // Maak bots
-        function generateBots(num) {
-            for (let i = 0; i < num; i++) {
-                const botImg = new Image();
-                botImg.src = botImgs[Math.floor(Math.random() * botImgs.length)];
-                const bot = {
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    width: 50,
-                    height: 50,
-                    speed: 1 + Math.random(),
-                    img: botImg,
-                    isAggressive: false,
-                    isEatingCandy: false
-                };
-                bots.push(bot);
-            }
+            spawnBot();  // Zorg ervoor dat er vanaf het begin een bot is
         }
 
         // Maak snoepjes
@@ -224,6 +207,33 @@
             });
         }
 
+        // Maak bots met willekeurige timing en beweging
+        function spawnBot() {
+            if (bots.length < 10) { // Zorg ervoor dat er maximaal 10 bots zijn
+                const botImg = new Image();
+                botImg.src = botImgs[Math.floor(Math.random() * botImgs.length)];
+
+                const bot = {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    width: 50,
+                    height: 50,
+                    speed: 1 + Math.random(),
+                    img: botImg,
+                    isAggressive: false,
+                    isEatingCandy: false
+                };
+
+                bots.push(bot);
+            }
+
+            // Spawn nieuwe bot na een willekeurige tijd
+            const timeElapsed = Date.now() - gameStartTime;
+            const spawnInterval = Math.max(3000, 10000 - Math.floor(timeElapsed / 1000) * 500); // Minimum 3 sec, versnelt naarmate het spel vordert
+
+            setTimeout(spawnBot, spawnInterval);
+        }
+
         // Controleer of bots snoep eten
         function checkCandyCollision() {
             bots.forEach(bot => {
@@ -234,35 +244,14 @@
                         bot.y < candy.y + candy.height &&
                         bot.y + bot.height > candy.y
                     ) {
-                        // Bot eet snoepje
-                        bot.isAggressive = true;
+                        // Bot eet snoep
+                        candy.x = -100;  // Verwijder snoep
+                        candy.y = -100;
                         bot.isEatingCandy = true;
-                        bot.width += 20;
-                        bot.height += 20;
-                        candies.splice(index, 1);
+                        bot.isAggressive = true;  // Maak de bot agressief
+                        score += 100;
                     }
                 });
-            });
-        }
-
-        // Controleer of speler bots eet
-        function checkBotCollision() {
-            bots.forEach((bot, index) => {
-                if (
-                    player.x < bot.x + bot.width &&
-                    player.x + player.width > bot.x &&
-                    player.y < bot.y + bot.height &&
-                    player.y + player.height > bot.y
-                ) {
-                    if (!bot.isAggressive) {
-                        // Speler eet bot
-                        bots.splice(index, 1);
-                        score += 100;
-                    } else {
-                        // Game over als de speler een agressieve bot raakt
-                        gameOver = true;
-                    }
-                }
             });
         }
 
@@ -307,7 +296,6 @@
             movePlayer();
             moveBots();
             checkCandyCollision();
-            checkBotCollision();
             draw();
 
             requestAnimationFrame(update);
