@@ -243,7 +243,7 @@
             setTimeout(spawnBot, spawnTime);
         }
 
-        // Verwerk bots die snoep eten en groter worden
+        // Check bot-collision met snoepjes
         function checkCandyCollision() {
             bots.forEach(bot => {
                 candies.forEach(candy => {
@@ -253,21 +253,36 @@
                         bot.y < candy.y + candy.height &&
                         bot.y + bot.height > candy.y
                     ) {
-                        candy.x = -100;  // Verwijder snoep
+                        candy.x = -100;  // Verwijder snoepje
                         candy.y = -100;
-
                         bot.isEatingCandy = true;
                         bot.isAggressive = true;
                         bot.width *= 1.5;  // Maak de bot groter
                         bot.height *= 1.5;
-                        bot.eatenTime = Date.now(); // Bewaar tijd waarop snoep werd gegeten
-                        score += 100;
+                        bot.eatenTime = Date.now();  // Bewaar de tijd waarop snoepje werd gegeten
+                        score += 100;  // Verhoog score
                     }
                 });
             });
         }
 
-        // Teken het spel
+        // Controleer of bots de speler aanraken
+        function checkBotCollision() {
+            bots.forEach(bot => {
+                if (
+                    bot.x < player.x + player.width &&
+                    bot.x + bot.width > player.x &&
+                    bot.y < player.y + player.height &&
+                    bot.y + bot.height > player.y
+                ) {
+                    if (bot.isAggressive) {
+                        gameOver = true;
+                    }
+                }
+            });
+        }
+
+        // Teken alles op het canvas
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -293,7 +308,7 @@
             // Teken score
             document.getElementById('score').textContent = score;
 
-            // Game over scherm
+            // Game over
             if (gameOver) {
                 ctx.font = '30px Arial';
                 ctx.fillStyle = 'red';
@@ -301,19 +316,20 @@
             }
         }
 
-        // Update de game
+        // Update alles (bewegingen, controles, teken)
         function update() {
             if (gameOver) return;
 
             movePlayer();
             moveBots();
             checkCandyCollision();
+            checkBotCollision();
             draw();
 
             requestAnimationFrame(update);
         }
 
-        // Start het spel
+        // Start het spel bij klikken op Start
         startButton.addEventListener('click', startGame);
     </script>
 </body>
