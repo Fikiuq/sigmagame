@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ontsnap de Bots</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: url('chinese_background.png') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Noto Serif', serif;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #d4af37;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .scoreboard {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.5em;
+            color: #d4af37;
+            text-shadow: 1px 1px 3px #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="scoreboard">Score: <span id="score">0</span></div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Afbeeldingen
+        const playerImg = new Image();
+        playerImg.src = 'lingling.png';
+
+        const botImgs = [
+            'cat.png',
+            'dog.png'
+        ];
+
+        // Speler en bots
+        let player = { x: 400, y: 300, width: 50, height: 50, speed: 5 };
+        let bots = [];
+        let obstacles = [];
+        let score = 0;
+        let gameOver = false;
+
+        // Toetsenregistratie
+        const keys = {};
+        window.addEventListener('keydown', (e) => keys[e.key] = true);
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        // Obstakels genereren
+        function generateObstacles(num) {
+            obstacles = [];
+            for (let i = 0; i < num; i++) {
+                const obstacle = {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    width: 50 + Math.random() * 50,
+                    height: 20 + Math.random() * 30,
+                };
+                obstacles.push(obstacle);
+            }
+        }
+
+        // Bots genereren
+        function spawnBot() {
+            const botImg = new Image();
+            botImg.src = botImgs[Math.floor(Math.random() * botImgs.length)];
+            const bot = {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                width: 50,
+                height: 50,
+                speed: 2 + Math.random() * 2,
+                img: botImg,
+            };
+            bots.push(bot);
+        }
+
+        // Spelerbeweging
+        function movePlayer() {
+            if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
+            if (keys['ArrowDown'] && player.y + player.height < canvas.height) player.y += player.speed;
+            if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+            if (keys['ArrowRight'] && player.x + player.width < canvas.width) player.x += player.speed;
+        }
+
+        // Bots bewegen
+        function moveBots() {
+            bots.forEach(bot => {
+                if (bot.x < player.x) bot.x += bot.speed;
+                else bot.x -= bot.speed;
+
+                if (bot.y < player.y) bot.y += bot.speed;
+                else bot.y -= bot.speed;
+
+                // Controle op bots-collision met speler
+                if (
+                    player.x < bot.x + bot.width &&
+                    player.x + player.width > bot.x &&
+                    player.y < bot.y + bot.height &&
+                    player.y + player.height > bot.y
+                ) {
+                    gameOver = true;
+                }
+            });
+        }
+
+        // Botsingen met obstakels
+        function checkObstacleCollision(entity) {
+            return obstacles.some(obstacle =>
+                entity.x < obstacle.x + obstacle.width &&
+                entity.x + entity.width > obstacle.x &&
+                entity.y < obstacle.y + obstacle.height &&
+                entity.y + entity.height > obstacle.y
+            );
+        }
+
+        // Teken elementen
+        function draw() {
+            // Wis canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Teken speler
+            ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+
+            // Teken bots
+            bots.forEach(bot => {
+                ctx.drawImage(bot.img, bot.x, bot.y, bot.width, bot.height);
+            });
+
+            // Teken obstakels
+            ctx.fillStyle = '#8b0000';
+            obstacles.forEach(obstacle => {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+
+            // Score bijwerken
+            document.getElementById('score').innerText = score;
+        }
+
+        // Volgende frame
+        function update() {
+            if (gameOver) {
+                alert(`Game Over! Je score is ${score}.`);
+                return;
+            }
+
+            movePlayer();
+            moveBots();
+
+            // Controleer of de speler tegen obstakels botst
+            if (checkObstacleCollision(player)) {
+                gameOver = true;
+            }
+
+            // Score verhogen en nieuwe bots toevoegen
+            score++;
+            if (score % 500 === 0) {
+                spawnBot();
+            }
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        // Start game
+        function startGame() {
+            generateObstacles(5);
+            spawnBot();
+            spawnBot();
+            update();
+        }
+
+        // Start het spel
+        startGame();
+    </script>
+</body>
+</html>
