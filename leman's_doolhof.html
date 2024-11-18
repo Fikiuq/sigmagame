@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leman's Doolhof</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: url('lemanachtergrond.png') no-repeat center center fixed;
+            background-size: cover;
+            overflow: hidden;
+        }
+
+        header {
+            background: url('leman.png') no-repeat center center;
+            background-size: contain;
+            height: 100px;
+            width: 100%;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            padding: 20px;
+            font-size: 2.5em;
+            color: white;
+            text-shadow: 2px 2px 5px black;
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 100px);
+            position: relative;
+        }
+
+        canvas {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid black;
+        }
+
+        .level-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.2em;
+            color: black;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Leman's Doolhof</h1>
+    </header>
+    <div class="game-container">
+        <div class="level-info">Level: <span id="level">1</span></div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Afbeeldingen
+        const playerImage = new Image();
+        playerImage.src = 'lemanplayer.png';
+
+        // Spel variabelen
+        let level = 1;
+        let player = { x: 10, y: 10, width: 30, height: 30, speed: 5 };
+        let mazeWalls = [];
+        let goal = { x: 550, y: 350, width: 40, height: 40 };
+
+        // Toetsenregistratie
+        let keys = {};
+
+        window.addEventListener('keydown', (e) => keys[e.key] = true);
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        // Maak een doolhof
+        function generateMaze(level) {
+            mazeWalls = [];
+            for (let i = 0; i < level * 5; i++) {
+                const wall = {
+                    x: Math.random() * (canvas.width - 50),
+                    y: Math.random() * (canvas.height - 50),
+                    width: 50,
+                    height: 10 + Math.random() * 40,
+                };
+                mazeWalls.push(wall);
+            }
+        }
+
+        // Tekenen
+        function draw() {
+            // Achtergrond
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Speler
+            ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+
+            // Doel
+            ctx.fillStyle = 'gold';
+            ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+
+            // Doolhofmuren
+            ctx.fillStyle = 'black';
+            mazeWalls.forEach(wall => {
+                ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+            });
+
+            // Level info
+            document.getElementById('level').innerText = level;
+        }
+
+        // Beweging
+        function movePlayer() {
+            if (keys['ArrowUp']) player.y -= player.speed;
+            if (keys['ArrowDown']) player.y += player.speed;
+            if (keys['ArrowLeft']) player.x -= player.speed;
+            if (keys['ArrowRight']) player.x += player.speed;
+
+            // Botsingen met muren
+            mazeWalls.forEach(wall => {
+                if (
+                    player.x < wall.x + wall.width &&
+                    player.x + player.width > wall.x &&
+                    player.y < wall.y + wall.height &&
+                    player.y + player.height > wall.y
+                ) {
+                    // Reset speler naar de vorige positie
+                    if (keys['ArrowUp']) player.y += player.speed;
+                    if (keys['ArrowDown']) player.y -= player.speed;
+                    if (keys['ArrowLeft']) player.x += player.speed;
+                    if (keys['ArrowRight']) player.x -= player.speed;
+                }
+            });
+
+            // Check of speler de rand raakt
+            if (player.x < 0) player.x = 0;
+            if (player.y < 0) player.y = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+
+            // Check of speler de goal raakt
+            if (
+                player.x < goal.x + goal.width &&
+                player.x + player.width > goal.x &&
+                player.y < goal.y + goal.height &&
+                player.y + player.height > goal.y
+            ) {
+                nextLevel();
+            }
+        }
+
+        // Volgend level
+        function nextLevel() {
+            level++;
+            player.x = 10;
+            player.y = 10;
+            generateMaze(level);
+        }
+
+        // Game loop
+        function gameLoop() {
+            movePlayer();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start spel
+        generateMaze(level);
+        gameLoop();
+    </script>
+</body>
+</html>
