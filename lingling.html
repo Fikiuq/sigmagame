@@ -124,6 +124,9 @@
         let score = 0;
         let gameOver = false;
 
+        // Obstakels
+        let obstacles = [];
+
         // Toetsenregistratie
         const keys = {};
         window.addEventListener('keydown', (e) => keys[e.key] = true);
@@ -137,6 +140,7 @@
 
             generateBots(3);
             generateCandies(4);
+            generateObstacles(5); // Voeg 5 obstakels toe
             update();
         }
 
@@ -174,6 +178,19 @@
             }
         }
 
+        // Maak obstakels
+        function generateObstacles(num) {
+            for (let i = 0; i < num; i++) {
+                const obstacle = {
+                    x: Math.random() * (canvas.width - 50),
+                    y: Math.random() * (canvas.height - 50),
+                    width: 50,
+                    height: 50,
+                };
+                obstacles.push(obstacle);
+            }
+        }
+
         // Beweeg speler
         function movePlayer() {
             if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
@@ -200,6 +217,10 @@
                     if (bot.y > player.y) bot.y += bot.speed;
                     else bot.y -= bot.speed;
                 }
+
+                // Zorg ervoor dat bots niet buiten het canvas bewegen
+                bot.x = Math.max(0, Math.min(bot.x, canvas.width - bot.width));
+                bot.y = Math.max(0, Math.min(bot.y, canvas.height - bot.height));
             });
         }
 
@@ -238,17 +259,22 @@
                         bots.splice(index, 1);
                         score += 100;
                     } else {
-                        // Agressieve bot raakt de speler
+                        // Game over als de speler een agressieve bot raakt
                         gameOver = true;
                     }
                 }
             });
         }
 
-        // Teken elementen
+        // Teken het spel
         function draw() {
-            // Wis canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Teken obstakels
+            obstacles.forEach(obstacle => {
+                ctx.fillStyle = 'brown';
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
 
             // Teken speler
             ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
@@ -263,16 +289,20 @@
                 ctx.drawImage(candyImg, candy.x, candy.y, candy.width, candy.height);
             });
 
-            // Score bijwerken
-            document.getElementById('score').innerText = score;
+            // Teken score
+            document.getElementById('score').textContent = score;
+
+            // Game over scherm
+            if (gameOver) {
+                ctx.font = '30px Arial';
+                ctx.fillStyle = 'red';
+                ctx.fillText('Game Over!', canvas.width / 2 - 80, canvas.height / 2);
+            }
         }
 
-        // Volgende frame
+        // Update de game
         function update() {
-            if (gameOver) {
-                alert('Game over!');
-                return;
-            }
+            if (gameOver) return;
 
             movePlayer();
             moveBots();
@@ -283,7 +313,7 @@
             requestAnimationFrame(update);
         }
 
-        // Starten
+        // Start het spel
         startButton.addEventListener('click', startGame);
     </script>
 </body>
