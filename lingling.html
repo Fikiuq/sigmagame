@@ -239,13 +239,11 @@
             }
 
             // Spawn nieuwe bot na een willekeurige tijd
-            const timeElapsed = Date.now() - gameStartTime;
-            const spawnInterval = Math.max(3000, 10000 - Math.floor(timeElapsed / 1000) * 500); // Minimum 3 sec, versnelt naarmate het spel vordert
-
-            setTimeout(spawnBot, spawnInterval);
+            const spawnTime = Math.random() * (10000 - 3000) + 3000;
+            setTimeout(spawnBot, spawnTime);
         }
 
-        // Controleer of bots snoep eten
+        // Verwerk bots die snoep eten en groter worden
         function checkCandyCollision() {
             bots.forEach(bot => {
                 candies.forEach(candy => {
