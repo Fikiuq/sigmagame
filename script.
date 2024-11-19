@@ -1,0 +1,130 @@
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 800;
+canvas.height = 600;
+
+// Afbeeldingen
+const linglingImg = new Image();
+linglingImg.src = 'lingling.png';
+const dogImg = new Image();
+dogImg.src = 'dog.png';
+const catImg = new Image();
+catImg.src = 'cat.png';
+const candyImg = new Image();
+candyImg.src = 'candy.png';
+
+let score = 0;
+let lingling = { x: 400, y: 300, size: 40, speed: 5 };
+let enemies = [];
+let candies = [];
+let enemySize = 40;
+
+// Helpers
+function randomPosition() {
+    return {
+        x: Math.random() * (canvas.width - enemySize),
+        y: Math.random() * (canvas.height - enemySize)
+    };
+}
+
+// Maak vijanden
+function spawnEnemy() {
+    const enemy = { ...randomPosition(), size: enemySize, type: Math.random() > 0.5 ? 'dog' : 'cat' };
+    enemies.push(enemy);
+}
+
+// Maak snoepjes
+function spawnCandy() {
+    const candy = { ...randomPosition(), size: 20 };
+    candies.push(candy);
+}
+
+// Beweeg speler
+function movePlayer(key) {
+    if (key === 'ArrowUp' && lingling.y > 0) lingling.y -= lingling.speed;
+    if (key === 'ArrowDown' && lingling.y < canvas.height - lingling.size) lingling.y += lingling.speed;
+    if (key === 'ArrowLeft' && lingling.x > 0) lingling.x -= lingling.speed;
+    if (key === 'ArrowRight' && lingling.x < canvas.width - lingling.size) lingling.x += lingling.speed;
+}
+
+// Teken alles
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Teken Lingling
+    ctx.drawImage(linglingImg, lingling.x, lingling.y, lingling.size, lingling.size);
+
+    // Teken vijanden
+    enemies.forEach(enemy => {
+        const img = enemy.type === 'dog' ? dogImg : catImg;
+        ctx.drawImage(img, enemy.x, enemy.y, enemy.size, enemy.size);
+    });
+
+    // Teken snoepjes
+    candies.forEach(candy => {
+        ctx.drawImage(candyImg, candy.x, candy.y, candy.size, candy.size);
+    });
+
+    // Score
+    ctx.font = '20px Arial';
+    ctx.fillStyle = 'black';
+    ctx.fillText(`Score: ${score}`, 10, 20);
+}
+
+// Update
+function update() {
+    // Controleer botsingen
+    enemies.forEach((enemy, index) => {
+        if (
+            lingling.x < enemy.x + enemy.size &&
+            lingling.x + lingling.size > enemy.x &&
+            lingling.y < enemy.y + enemy.size &&
+            lingling.y + lingling.size > enemy.y
+        ) {
+            alert('Game Over!');
+            document.location.reload();
+        }
+    });
+
+    candies.forEach((candy, index) => {
+        if (
+            lingling.x < candy.x + candy.size &&
+            lingling.x + lingling.size > candy.x &&
+            lingling.y < candy.y + candy.size &&
+            lingling.y + lingling.size > candy.y
+        ) {
+            candies.splice(index, 1);
+            enemies.forEach(enemy => (enemy.size += 20)); // Maak vijanden groter
+        }
+    });
+
+    // Verwijder vijanden die worden opgegeten
+    enemies = enemies.filter(enemy => {
+        const collision = 
+            lingling.x < enemy.x + enemy.size &&
+            lingling.x + lingling.size > enemy.x &&
+            lingling.y < enemy.y + enemy.size &&
+            lingling.y + lingling.size > enemy.y;
+
+        if (collision) {
+            score += 100;
+            return false;
+        }
+        return true;
+    });
+}
+
+// Main Loop
+function gameLoop() {
+    draw();
+    update();
+    requestAnimationFrame(gameLoop);
+}
+
+// Input Listener
+document.addEventListener('keydown', e => movePlayer(e.key));
+
+// Start de game
+setInterval(spawnEnemy, 2000); // Voeg elke 2 sec een vijand toe
+setInterval(spawnCandy, 5000); // Voeg elke 5 sec een snoepje toe
+gameLoop();
