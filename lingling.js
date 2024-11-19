@@ -1,184 +1,152 @@
+// Canvas instellingen
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+canvas.width = 800;
+canvas.height = 600;
 
-// Game assets
-const playerImg = new Image();
-playerImg.src = 'lingling.png';
-
-const botImgs = ['cat.png', 'dog.png'];
+// Afbeeldingen
+const linglingImg = new Image();
+linglingImg.src = 'lingling.png';
+const dogImg = new Image();
+dogImg.src = 'dog.png';
+const catImg = new Image();
 const candyImg = new Image();
+catImg.src = 'cat.png';
 candyImg.src = 'candy.png';
 
-let player = { x: 400, y: 300, width: 50, height: 50, speed: 5 };
-let bots = [];
+// Speler en vijanden
+let player = { x: 400, y: 300, size: 50, speed: 5, dx: 0, dy: 0 };
+let enemies = [];
 let candies = [];
-let obstacles = [];
 let score = 0;
-let gameOver = false;
 
-const keys = {};
-let gameStarted = false;
-
-// Movement keys
-window.addEventListener('keydown', (e) => (keys[e.key] = true));
-window.addEventListener('keyup', (e) => (keys[e.key] = false));
-
-// Start Game
-document.getElementById('startButton').addEventListener('click', () => {
-    document.getElementById('startScreen').style.display = 'none';
-    gameStarted = true;
-    initializeGame();
-    update();
-});
-
-// Generate obstacles
-function generateObstacles(num) {
-    for (let i = 0; i < num; i++) {
-        obstacles.push({
-            x: Math.random() * (canvas.width - 50),
-            y: Math.random() * (canvas.height - 50),
-            width: 50,
-            height: 50,
-        });
-    }
+// Helpers
+function randomPosition() {
+    return {
+        x: Math.random() * (canvas.width - 50),
+        y: Math.random() * (canvas.height - 50),
+    };
 }
 
-// Spawn candies
+// Vijanden maken
+function spawnEnemy() {
+    const enemy = { ...randomPosition(), size: 50, type: Math.random() > 0.5 ? 'dog' : 'cat', speed: 2 };
+    enemies.push(enemy);
+}
+
+// Snoepjes maken
 function spawnCandy() {
-    if (candies.length < 4) {
-        candies.push({
-            x: Math.random() * (canvas.width - 30),
-            y: Math.random() * (canvas.height - 30),
-            width: 30,
-            height: 30,
-        });
-    }
+    const candy = { ...randomPosition(), size: 20 };
+    candies.push(candy);
 }
 
-// Spawn bots
-function spawnBot() {
-    if (bots.length < 10) {
-        const botImg = new Image();
-        botImg.src = botImgs[Math.floor(Math.random() * botImgs.length)];
-
-        bots.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            width: 50,
-            height: 50,
-            speed: Math.random() * 2 + 1,
-            img: botImg,
-            isAggressive: false,
-            growTime: null,
-        });
-    }
-}
-
-// Movement logic
-function movePlayer() {
-    const newX = keys['ArrowLeft'] ? player.x - player.speed : keys['ArrowRight'] ? player.x + player.speed : player.x;
-    const newY = keys['ArrowUp'] ? player.y - player.speed : keys['ArrowDown'] ? player.y + player.speed : player.y;
-
-    if (!collidesWithObstacle(newX, player.y)) player.x = Math.max(0, Math.min(newX, canvas.width - player.width));
-    if (!collidesWithObstacle(player.x, newY)) player.y = Math.max(0, Math.min(newY, canvas.height - player.height));
-}
-
-function moveBots() {
-    bots.forEach((bot) => {
-        if (bot.isAggressive) {
-            bot.x += bot.x < player.x ? bot.speed : -bot.speed;
-            bot.y += bot.y < player.y ? bot.speed : -bot.speed;
-        } else {
-            bot.x += bot.x > player.x ? bot.speed : -bot.speed;
-            bot.y += bot.y > player.y ? bot.speed : -bot.speed;
-        }
-
-        bot.x = Math.max(0, Math.min(bot.x, canvas.width - bot.width));
-        bot.y = Math.max(0, Math.min(bot.y, canvas.height - bot.height));
-    });
-}
-
-// Check collisions
-function collidesWithObstacle(x, y) {
-    return obstacles.some(
-        (obs) =>
-            x < obs.x + obs.width &&
-            x + player.width > obs.x &&
-            y < obs.y + obs.height &&
-            y + player.height > obs.y
-    );
-}
-
-// Collision logic
-function checkCollisions() {
-    bots.forEach((bot, i) => {
-        if (
-            player.x < bot.x + bot.width &&
-            player.x + player.width > bot.x &&
-            player.y < bot.y + bot.height &&
-            player.y + player.height > bot.y
-        ) {
-            if (!bot.isAggressive) {
-                bots.splice(i, 1);
-                score += 100;
-            } else {
-                gameOver = true;
-            }
-        }
-    });
-
-    candies.forEach((candy, i) => {
-        if (
-            player.x < candy.x + candy.width &&
-            player.x + player.width > candy.x &&
-            player.y < candy.y + candy.height &&
-            player.y + player.height > candy.y
-        ) {
-            candies.splice(i, 1);
-            spawnCandy();
-        }
-    });
-}
-
-// Game initialization
-function initializeGame() {
-    generateObstacles(5);
-    setInterval(spawnCandy, 10000);
-    setInterval(spawnBot, 5000);
-}
-
-// Draw everything
+// Teken alles
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    obstacles.forEach((obs) => {
-        ctx.fillStyle = 'brown';
-        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+    // Teken speler
+    ctx.drawImage(linglingImg, player.x, player.y, player.size, player.size);
+
+    // Teken vijanden
+    enemies.forEach(enemy => {
+        const img = enemy.type === 'dog' ? dogImg : catImg;
+        ctx.drawImage(img, enemy.x, enemy.y, enemy.size, enemy.size);
     });
 
-    ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
-    bots.forEach((bot) => ctx.drawImage(bot.img, bot.x, bot.y, bot.width, bot.height));
-    candies.forEach((candy) => ctx.drawImage(candyImg, candy.x, candy.y, candy.width, candy.height));
+    // Teken snoepjes
+    candies.forEach(candy => {
+        ctx.drawImage(candyImg, candy.x, candy.y, candy.size, candy.size);
+    });
 
-    ctx.fillStyle = 'gold';
+    // Score
     ctx.font = '20px Arial';
+    ctx.fillStyle = 'black';
     ctx.fillText(`Score: ${score}`, 10, 20);
-
-    if (gameOver) {
-        ctx.fillStyle = 'red';
-        ctx.font = '50px Arial';
-        ctx.fillText('GAME OVER', canvas.width / 2 - 150, canvas.height / 2);
-    }
 }
 
-// Update loop
-function update() {
-    if (gameOver || !gameStarted) return;
+// Vijanden bewegen weg van Lingling
+function moveEnemies() {
+    enemies.forEach(enemy => {
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-    movePlayer();
-    moveBots();
-    checkCollisions();
+        if (distance > 0) {
+            enemy.x += (dx / distance) * enemy.speed;
+            enemy.y += (dy / distance) * enemy.speed;
+        }
+    });
+}
+
+// Speler bewegen
+function movePlayer() {
+    player.x += player.dx;
+    player.y += player.dy;
+
+    // Zorg dat speler binnen canvas blijft
+    player.x = Math.max(0, Math.min(player.x, canvas.width - player.size));
+    player.y = Math.max(0, Math.min(player.y, canvas.height - player.size));
+}
+
+// Check botsingen
+function checkCollisions() {
+    // Vijand botsing
+    enemies = enemies.filter(enemy => {
+        const collided = player.x < enemy.x + enemy.size &&
+                         player.x + player.size > enemy.x &&
+                         player.y < enemy.y + enemy.size &&
+                         player.y + player.size > enemy.y;
+
+        if (collided) {
+            if (enemy.size > 70) {
+                alert('Game Over! Je score: ' + score);
+                document.location.reload();
+            } else {
+                score += 100;
+                return false;
+            }
+        }
+        return true;
+    });
+
+    // Snoepjes botsing
+    candies = candies.filter(candy => {
+        const collided = player.x < candy.x + candy.size &&
+                         player.x + player.size > candy.x &&
+                         player.y < candy.y + candy.size &&
+                         player.y + player.size > candy.y;
+
+        if (collided) {
+            enemies.forEach(enemy => (enemy.size += 20)); // Vijanden worden groter
+            return false;
+        }
+        return true;
+    });
+}
+
+// Toetsenbord events
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp') player.dy = -player.speed;
+    if (e.key === 'ArrowDown') player.dy = player.speed;
+    if (e.key === 'ArrowLeft') player.dx = -player.speed;
+    if (e.key === 'ArrowRight') player.dx = player.speed;
+});
+
+document.addEventListener('keyup', e => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') player.dy = 0;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
+});
+
+// Game loop
+function gameLoop() {
     draw();
-
-    requestAnimationFrame(update);
+    movePlayer();
+    moveEnemies();
+    checkCollisions();
+    requestAnimationFrame(gameLoop);
 }
+
+// Start het spel
+setInterval(spawnEnemy, 2000);
+setInterval(spawnCandy, 5000);
+gameLoop();
