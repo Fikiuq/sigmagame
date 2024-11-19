@@ -3,154 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lingling's Avontuur</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Noto Serif', serif;
-            background: url('chinese_background.png') no-repeat center center fixed;
-            background-size: cover;
-        }
-
-        canvas {
-            display: block;
-            margin: 0 auto;
-            border: 2px solid #d4af37;
-        }
-
-        .scoreboard {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 1.5em;
-            color: #d4af37;
-        }
-
-        .footer {
-            position: fixed;
-            bottom: 10px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            color: #d4af37;
-            font-size: 1em;
-        }
-
-        .footer-right {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            color: #d4af37;
-            font-size: 0.8em;
-        }
-    </style>
+    <title>SigmaGames</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="scoreboard">Score: <span id="score">0</span></div>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <div class="footer">© 2024 - Sigma Games</div>
-    <div class="footer-right">
-        Made by Nisse_S | Player character by Loopis | Idea by Ling Ling
+    <div class="container">
+        <h1>SigmaGames</h1>
+        <p>Discover and play your favorite games!</p>
+
+        <!-- Zoekbalk -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search games..." onkeyup="searchGames()">
+        </div>
+
+        <!-- Game lijst -->
+        <div class="game-list" id="gameList">
+            <div class="game-item"><a href="pacman.html">Pacman</a></div>
+            <div class="game-item"><a href="snake.html">Snake</a></div> <!-- Nieuwe game toegevoegd -->
+        </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        const playerImg = new Image();
-        playerImg.src = 'lingling.png';
-
-        const botImgs = ['cat.png', 'dog.png'];
-        const candyImg = new Image();
-        candyImg.src = 'candy.png';
-
-        let player = { x: 400, y: 300, width: 50, height: 50, speed: 5 };
-        let bots = [];
-        let candies = [];
-        let score = 0;
-        let gameOver = false;
-        let obstacles = [];
-
-        const keys = {};
-        window.addEventListener('keydown', (e) => keys[e.key] = true);
-        window.addEventListener('keyup', (e) => keys[e.key] = false);
-
-        function generateObstacles(num) {
-            for (let i = 0; i < num; i++) {
-                obstacles.push({
-                    x: Math.random() * (canvas.width - 50),
-                    y: Math.random() * (canvas.height - 50),
-                    width: 50,
-                    height: 50,
-                });
-            }
-        }
-
-        function spawnCandy() {
-            if (candies.length < 4) {
-                candies.push({
-                    x: Math.random() * (canvas.width - 30),
-                    y: Math.random() * (canvas.height - 30),
-                    width: 30,
-                    height: 30,
-                });
-            }
-        }
-
-        function spawnBot() {
-            if (bots.length < 10) {
-                const botImg = new Image();
-                botImg.src = botImgs[Math.floor(Math.random() * botImgs.length)];
-
-                bots.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    width: 50,
-                    height: 50,
-                    speed: Math.random() * 2 + 1,
-                    img: botImg,
-                    isAggressive: false,
-                    growTime: null,
-                });
-            }
-        }
-
-        function movePlayer() {
-            const newX = keys['ArrowLeft'] ? player.x - player.speed : keys['ArrowRight'] ? player.x + player.speed : player.x;
-            const newY = keys['ArrowUp'] ? player.y - player.speed : keys['ArrowDown'] ? player.y + player.speed : player.y;
-
-            if (!collidesWithObstacle(newX, player.y)) player.x = Math.max(0, Math.min(newX, canvas.width - player.width));
-            if (!collidesWithObstacle(player.x, newY)) player.y = Math.max(0, Math.min(newY, canvas.height - player.height));
-        }
-
-        function moveBots() {
-            bots.forEach(bot => {
-                if (bot.isAggressive) {
-                    bot.x += bot.x < player.x ? bot.speed : -bot.speed;
-                    bot.y += bot.y < player.y ? bot.speed : -bot.speed;
+        function searchGames() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const games = document.querySelectorAll('.game-item');
+            games.forEach(game => {
+                if (game.innerText.toLowerCase().includes(input)) {
+                    game.style.display = "flex";
                 } else {
-                    bot.x += bot.x > player.x ? bot.speed : -bot.speed;
-                    bot.y += bot.y > player.y ? bot.speed : -bot.speed;
+                    game.style.display = "none";
                 }
-                bot.x = Math.max(0, Math.min(bot.x, canvas.width - bot.width));
-                bot.y = Math.max(0, Math.min(bot.y, canvas.height - bot.height));
             });
         }
-
-        function collidesWithObstacle(x, y) {
-            return obstacles.some(obs => x < obs.x + obs.width && x + player.width > obs.x && y < obs.y + obs.height && y + player.height > obs.y);
-        }
-
-        function checkCollisions() {
-            bots.forEach((bot, i) => {
-                if (
-                    player.x < bot.x + bot.width &&
-                    player.x + player.width > bot.x &&
-                    player.y < bot.y + bot.height &&
-                    player.y + player.height > bot.y
-                ) {
-                    if (!bot.isAggressive) {
-                        bots.splice(i, 1);
-                        score += 100;
-          
+    </script>
+</body>
+</html>
