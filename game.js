@@ -10,12 +10,12 @@ linglingImg.src = 'lingling.png';
 const dogImg = new Image();
 dogImg.src = 'dog.png';
 const catImg = new Image();
-catImg.src = 'cat.png';
 const candyImg = new Image();
+catImg.src = 'cat.png';
 candyImg.src = 'candy.png';
 
 // Speler en vijanden
-let player = { x: 400, y: 300, size: 50, speed: 5 };
+let player = { x: 400, y: 300, size: 50, speed: 5, dx: 0, dy: 0 };
 let enemies = [];
 let candies = [];
 let score = 0;
@@ -24,13 +24,13 @@ let score = 0;
 function randomPosition() {
     return {
         x: Math.random() * (canvas.width - 50),
-        y: Math.random() * (canvas.height - 50)
+        y: Math.random() * (canvas.height - 50),
     };
 }
 
 // Vijanden maken
 function spawnEnemy() {
-    const enemy = { ...randomPosition(), size: 50, type: Math.random() > 0.5 ? 'dog' : 'cat', speed: 1 };
+    const enemy = { ...randomPosition(), size: 50, type: Math.random() > 0.5 ? 'dog' : 'cat', speed: 2 };
     enemies.push(enemy);
 }
 
@@ -64,12 +64,13 @@ function draw() {
     ctx.fillText(`Score: ${score}`, 10, 20);
 }
 
-// Beweeg vijanden naar speler
+// Vijanden bewegen weg van Lingling
 function moveEnemies() {
     enemies.forEach(enemy => {
-        const dx = player.x - enemy.x;
-        const dy = player.y - enemy.y;
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+
         if (distance > 0) {
             enemy.x += (dx / distance) * enemy.speed;
             enemy.y += (dy / distance) * enemy.speed;
@@ -77,8 +78,19 @@ function moveEnemies() {
     });
 }
 
+// Speler bewegen
+function movePlayer() {
+    player.x += player.dx;
+    player.y += player.dy;
+
+    // Zorg dat speler binnen canvas blijft
+    player.x = Math.max(0, Math.min(player.x, canvas.width - player.size));
+    player.y = Math.max(0, Math.min(player.y, canvas.height - player.size));
+}
+
 // Check botsingen
 function checkCollisions() {
+    // Vijand botsing
     enemies = enemies.filter(enemy => {
         const collided = player.x < enemy.x + enemy.size &&
                          player.x + player.size > enemy.x &&
@@ -86,12 +98,18 @@ function checkCollisions() {
                          player.y + player.size > enemy.y;
 
         if (collided) {
-            score += 100;
-            return false;
+            if (enemy.size > 70) {
+                alert('Game Over! Je score: ' + score);
+                document.location.reload();
+            } else {
+                score += 100;
+                return false;
+            }
         }
         return true;
     });
 
+    // Snoepjes botsing
     candies = candies.filter(candy => {
         const collided = player.x < candy.x + candy.size &&
                          player.x + player.size > candy.x &&
@@ -104,31 +122,25 @@ function checkCollisions() {
         }
         return true;
     });
-
-    enemies.forEach(enemy => {
-        if (
-            player.x < enemy.x + enemy.size &&
-            player.x + player.size > enemy.x &&
-            player.y < enemy.y + enemy.size &&
-            player.y + player.size > enemy.y
-        ) {
-            alert('Game Over! Je score: ' + score);
-            document.location.reload();
-        }
-    });
 }
 
-// Beweeg speler
+// Toetsenbord events
 document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowUp' && player.y > 0) player.y -= player.speed;
-    if (e.key === 'ArrowDown' && player.y < canvas.height - player.size) player.y += player.speed;
-    if (e.key === 'ArrowLeft' && player.x > 0) player.x -= player.speed;
-    if (e.key === 'ArrowRight' && player.x < canvas.width - player.size) player.x += player.speed;
+    if (e.key === 'ArrowUp') player.dy = -player.speed;
+    if (e.key === 'ArrowDown') player.dy = player.speed;
+    if (e.key === 'ArrowLeft') player.dx = -player.speed;
+    if (e.key === 'ArrowRight') player.dx = player.speed;
+});
+
+document.addEventListener('keyup', e => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') player.dy = 0;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
 });
 
 // Game loop
 function gameLoop() {
     draw();
+    movePlayer();
     moveEnemies();
     checkCollisions();
     requestAnimationFrame(gameLoop);
