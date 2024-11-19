@@ -20,7 +20,6 @@ let enemies = [];
 let candies = [];
 let score = 0;
 const AGGRESSIVE_SIZE = 70; // Drempelgrootte voor agressie
-let gameOver = false;
 
 // Helpers
 function randomPosition() {
@@ -82,23 +81,6 @@ function draw() {
     ctx.font = '20px Arial';
     ctx.fillStyle = 'black';
     ctx.fillText(`Score: ${score}`, 10, 20);
-
-    // Game over scherm
-    if (gameOver) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(0, canvas.height / 2 - 50, canvas.width, 100);
-        ctx.fillStyle = 'white';
-        ctx.font = '30px Arial';
-        ctx.fillText('Game Over', canvas.width / 2 - 80, canvas.height / 2);
-        ctx.fillText(`Score: ${score}`, canvas.width / 2 - 60, canvas.height / 2 + 40);
-        
-        // Play again button
-        ctx.fillStyle = '#ffeb3b';
-        ctx.fillRect(canvas.width / 2 - 75, canvas.height / 2 + 60, 150, 40);
-        ctx.fillStyle = 'black';
-        ctx.font = '20px Arial';
-        ctx.fillText('Play Again', canvas.width / 2 - 55, canvas.height / 2 + 90);
-    }
 }
 
 // Vijanden bewegen
@@ -166,8 +148,8 @@ function checkPlayerCollisions() {
 
         if (collided) {
             if (enemy.size >= AGGRESSIVE_SIZE) {
-                gameOver = true; // Game over als je geraakt wordt door een agressieve vijand
-                return false;
+                alert('Game Over! Je score: ' + score);
+                document.location.reload();
             } else {
                 score += 100; // Kleine vijanden worden opgegeten
                 return false;
@@ -179,7 +161,6 @@ function checkPlayerCollisions() {
 
 // Toetsenbord events
 document.addEventListener('keydown', e => {
-    if (gameOver) return; // Voorkom beweging na game over
     if (e.key === 'ArrowUp') player.dy = -player.speed;
     if (e.key === 'ArrowDown') player.dy = player.speed;
     if (e.key === 'ArrowLeft') player.dx = -player.speed;
@@ -191,32 +172,6 @@ document.addEventListener('keyup', e => {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
 });
 
-// Play Again knop
-canvas.addEventListener('click', (e) => {
-    if (gameOver) {
-        const mouseX = e.offsetX;
-        const mouseY = e.offsetY;
-
-        // Check of de klik binnen de Play Again knop valt
-        if (mouseX > canvas.width / 2 - 75 && mouseX < canvas.width / 2 + 75 &&
-            mouseY > canvas.height / 2 + 60 && mouseY < canvas.height / 2 + 100) {
-            // Reset de game
-            resetGame();
-        }
-    }
-});
-
-// Game opnieuw starten
-function resetGame() {
-    player = { x: 400, y: 300, size: 50, speed: 5, dx: 0, dy: 0 };
-    enemies = [];
-    candies = [];
-    score = 0;
-    gameOver = false;
-    spawnInitialEntities();
-    gameLoop();
-}
-
 // Game loop
 function gameLoop() {
     draw();
@@ -224,11 +179,11 @@ function gameLoop() {
     moveEnemies();
     checkCandyCollisions();
     checkPlayerCollisions();
-    if (!gameOver) {
-        requestAnimationFrame(gameLoop);
-    }
+    requestAnimationFrame(gameLoop);
 }
 
 // Start het spel
 spawnInitialEntities();
+setInterval(spawnEnemy, 3000); // Nieuwe vijanden elke 3 seconden
+setInterval(spawnCandy, 5000); // Nieuwe snoepjes elke 5 seconden
 gameLoop();
