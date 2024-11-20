@@ -12,7 +12,113 @@
         canvas {
             background-color: #f0f0f0;
             border: 2px solid #000;
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball Game</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
         }
+        canvas {
+            background-color: #f0f0f0;
+            border: 2px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Basketball Game</h1>
+    <p>Score: <span id="score">0</span></p>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreDisplay = document.getElementById("score");
+
+        let score = 0;
+        let ball = { x: 400, y: 500, radius: 15, dx: 0, dy: 0 };
+        let hoop = { x: 350, y: 50, width: 100, height: 10 };
+        let player = { x: 375, y: 450, width: 50, height: 100 };
+
+        // Load images
+        const playerImage = new Image();
+        const hoopImage = new Image();
+        playerImage.src = 'basketgame_player.png';  // Zorg ervoor dat je deze afbeelding hebt in je project
+        hoopImage.src = 'basketgame_basket.png';    // Zorg ervoor dat je deze afbeelding hebt in je project
+
+        // Function to draw the player
+        function drawPlayer() {
+            ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+        }
+
+        // Function to draw the ball
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "#ff5733";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Function to draw the hoop
+        function drawHoop() {
+            ctx.drawImage(hoopImage, hoop.x, hoop.y, hoop.width, hoop.height);
+        }
+
+        // Function to update the ball's position
+        function updateBall() {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            
+            // Check if the ball hits the ground or hoop
+            if (ball.y + ball.radius > canvas.height) {
+                resetBall();
+            }
+
+            // Check if the ball goes through the hoop
+            if (ball.y - ball.radius < hoop.y + hoop.height &&
+                ball.x > hoop.x && ball.x < hoop.x + hoop.width) {
+                score++;
+                scoreDisplay.textContent = score;
+                resetBall();
+            }
+        }
+
+        // Function to reset ball to starting position
+        function resetBall() {
+            ball.x = 400;
+            ball.y = 500;
+            ball.dx = 0;
+            ball.dy = 0;
+        }
+
+        // Event listener for mouse clicks to shoot the ball
+        canvas.addEventListener("click", function(event) {
+            const angle = Math.atan2(event.clientY - ball.y, event.clientX - ball.x);
+            ball.dx = Math.cos(angle) * 5;
+            ball.dy = Math.sin(angle) * -5;
+        });
+
+        // Function to draw everything
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBall();
+            drawHoop();
+            drawPlayer();
+            updateBall();
+        }
+
+        // Game loop
+        setInterval(draw, 20);
+
+    </script>
+</body>
+</html>
+
     </style>
 </head>
 <body>
