@@ -13,13 +13,19 @@ const catImg = new Image();
 catImg.src = 'cat.png';
 const candyImg = new Image();
 candyImg.src = 'candy.png';
+const lumpiaImg = new Image();
+lumpiaImg.src = 'lumpia.png';
+const poopImg = new Image();
+poopImg.src = 'poop.png';
 
-// Speler en vijanden
+// Speler, vijanden, en objecten
 let player = { x: 400, y: 300, size: 50, speed: 5, dx: 0, dy: 0 };
 let enemies = [];
 let candies = [];
+let lumpias = [];
+let poops = [];
 let score = 0;
-const AGGRESSIVE_SIZE = 70; // Drempelgrootte voor agressie
+const AGGRESSIVE_SIZE = 70;
 
 // Helpers
 function randomPosition() {
@@ -29,7 +35,6 @@ function randomPosition() {
     };
 }
 
-// Zorg ervoor dat de speler en vijanden binnen het canvas blijven
 function constrainPosition(entity) {
     if (entity.x < 0) entity.x = 0;
     if (entity.x + entity.size > canvas.width) entity.x = canvas.width - entity.size;
@@ -37,26 +42,26 @@ function constrainPosition(entity) {
     if (entity.y + entity.size > canvas.height) entity.y = canvas.height - entity.size;
 }
 
-// Spawn 3 vijanden en 5 snoepjes in het begin
-function spawnInitialEntities() {
-    for (let i = 0; i < 3; i++) {
-        spawnEnemy();
-    }
-    for (let i = 0; i < 5; i++) {
-        spawnCandy();
-    }
-}
-
-// Vijanden maken
+// Spawn-functies
 function spawnEnemy() {
     const enemy = { ...randomPosition(), size: 50, type: Math.random() > 0.5 ? 'dog' : 'cat', speed: 2, aggressive: false };
     enemies.push(enemy);
 }
 
-// Snoepjes maken
 function spawnCandy() {
     const candy = { ...randomPosition(), size: 20 };
     candies.push(candy);
+}
+
+function spawnLumpia() {
+    const lumpia = { ...randomPosition(), size: 25 };
+    lumpias.push(lumpia);
+}
+
+function spawnInitialEntities() {
+    for (let i = 0; i < 3; i++) spawnEnemy();
+    for (let i = 0; i < 5; i++) spawnCandy();
+    for (let i = 0; i < 3; i++) spawnLumpia();
 }
 
 // Teken alles
@@ -73,9 +78,13 @@ function draw() {
     });
 
     // Teken snoepjes
-    candies.forEach(candy => {
-        ctx.drawImage(candyImg, candy.x, candy.y, candy.size, candy.size);
-    });
+    candies.forEach(candy => ctx.drawImage(candyImg, candy.x, candy.y, candy.size, candy.size));
+
+    // Teken lompia's
+    lumpias.forEach(lumpia => ctx.drawImage(lumpiaImg, lumpia.x, lumpia.y, lumpia.size, lumpia.size));
+
+    // Teken drollen
+    poops.forEach(poop => ctx.drawImage(poopImg, poop.x, poop.y, poop.size, poop.size));
 
     // Score
     ctx.font = '20px Arial';
@@ -90,20 +99,21 @@ function moveEnemies() {
         const dy = player.y - enemy.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
+        const speedModifier = Math.max(0.5, 3 - enemy.size / 50); // Hoe groter de vijand, hoe trager
+        const speed = enemy.speed * speedModifier;
+
         if (enemy.size >= AGGRESSIVE_SIZE) {
-            // Agressieve vijanden jagen op Lingling
             if (distance > 0) {
-                enemy.x += (dx / distance) * enemy.speed;
-                enemy.y += (dy / distance) * enemy.speed;
+                enemy.x += (dx / distance) * speed;
+                enemy.y += (dy / distance) * speed;
             }
         } else {
-            // Niet-agressieve vijanden rennen weg van Lingling
             if (distance > 0) {
-                enemy.x -= (dx / distance) * enemy.speed;
-                enemy.y -= (dy / distance) * enemy.speed;
+                enemy.x -= (dx / distance) * speed;
+                enemy.y -= (dy / distance) * speed;
             }
         }
-        constrainPosition(enemy); // Zorg ervoor dat vijanden binnen het canvas blijven
+        constrainPosition(enemy);
     });
 }
 
@@ -111,52 +121,64 @@ function moveEnemies() {
 function movePlayer() {
     player.x += player.dx;
     player.y += player.dy;
-
-    // Zorg dat speler binnen canvas blijft
     constrainPosition(player);
 }
 
-// Botsingen tussen vijanden en snoepjes
+// Botsingen
 function checkCandyCollisions() {
     candies = candies.filter(candy => {
-        for (let i = 0; i < enemies.length; i++) {
-            const enemy = enemies[i];
-            const collided = candy.x < enemy.x + enemy.size &&
-                             candy.x + candy.size > enemy.x &&
-                             candy.y < enemy.y + enemy.size &&
-                             candy.y + candy.size > enemy.y;
-
-            if (collided) {
-                enemy.size += 20; // De vijand die het snoepje eet, wordt groter
-                if (enemy.size >= AGGRESSIVE_SIZE) {
-                    enemy.aggressive = true; // Vijand wordt agressief
-                }
-                return false; // Snoepje verdwijnt
-            }
-        }
-        return true;
-    });
-}
-
-// Check botsingen tussen speler en vijanden
-function checkPlayerCollisions() {
-    enemies = enemies.filter(enemy => {
-        const collided = player.x < enemy.x + enemy.size &&
-                         player.x + player.size > enemy.x &&
-                         player.y < enemy.y + enemy.size &&
-                         player.y + player.size > enemy.y;
-
-        if (collided) {
-            if (enemy.size >= AGGRESSIVE_SIZE) {
-                alert('Game Over! Je score: ' + score);
-                document.location.reload();
-            } else {
-                score += 100; // Kleine vijanden worden opgegeten
+        for (let enemy of enemies) {
+            if (checkCollision(candy, enemy)) {
+                enemy.size += 20;
+                if (enemy.size >= AGGRESSIVE_SIZE) enemy.aggressive = true;
                 return false;
             }
         }
         return true;
     });
+}
+
+function checkLumpiaCollisions() {
+    lumpias = lumpias.filter(lumpia => {
+        for (let enemy of enemies) {
+            if (checkCollision(lumpia, enemy)) {
+                poops.push({ ...enemy, size: 15 }); // Laat een drol achter
+                return false;
+            }
+        }
+        return true;
+    });
+}
+
+function checkPlayerCollisions() {
+    enemies = enemies.filter(enemy => {
+        if (checkCollision(player, enemy)) {
+            if (enemy.size >= AGGRESSIVE_SIZE) {
+                showGameOverScreen();
+                return false;
+            } else {
+                score += 100;
+                return false;
+            }
+        }
+        return true;
+    });
+}
+
+function checkCollision(a, b) {
+    return a.x < b.x + b.size && a.x + a.size > b.x && a.y < b.y + b.size && a.y + a.size > b.y;
+}
+
+// Game over scherm
+function showGameOverScreen() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '40px Arial';
+    ctx.fillStyle = 'red';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+    ctx.fillStyle = 'black';
+    ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 50);
+    cancelAnimationFrame(gameLoop); // Stop de animatie
 }
 
 // Toetsenbord events
@@ -178,12 +200,14 @@ function gameLoop() {
     movePlayer();
     moveEnemies();
     checkCandyCollisions();
+    checkLumpiaCollisions();
     checkPlayerCollisions();
     requestAnimationFrame(gameLoop);
 }
 
 // Start het spel
 spawnInitialEntities();
-setInterval(spawnEnemy, 3000); // Nieuwe vijanden elke 3 seconden
-setInterval(spawnCandy, 5000); // Nieuwe snoepjes elke 5 seconden
+setInterval(spawnEnemy, 3000);
+setInterval(spawnCandy, 5000);
+setInterval(spawnLumpia, 7000);
 gameLoop();
