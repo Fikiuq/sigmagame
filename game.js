@@ -45,9 +45,18 @@ function constrainPosition(entity) {
 
 // Spawn initiële entiteiten
 function spawnInitialEntities() {
-    for (let i = 0; i < 3; i++) spawnEnemy();
-    for (let i = 0; i < 5; i++) spawnCandy();
-    for (let i = 0; i < 3; i++) spawnLumpia();
+    // Spawn vijanden
+    for (let i = 0; i < 3; i++) {
+        spawnEnemy();
+    }
+    // Spawn snoepjes
+    for (let i = 0; i < 5; i++) {
+        spawnCandy();
+    }
+    // Spawn lumpia's
+    for (let i = 0; i < 3; i++) {
+        spawnLumpia();
+    }
 }
 
 // Vijanden maken
