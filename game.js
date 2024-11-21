@@ -209,7 +209,7 @@ function checkCollisions() {
         }
     });
 
-    // Ling Ling eet dieren
+    // **Ling Ling eet dieren als hij groter is**
     enemies = enemies.filter(enemy => {
         const collided = player.x < enemy.x + enemy.size &&
                          player.x + player.size > enemy.x &&
@@ -217,11 +217,11 @@ function checkCollisions() {
                          player.y + player.size > enemy.y;
 
         if (collided && player.size > enemy.size) {
-            // Ling Ling eet het dier
+            // Ling Ling eet het dier (groter dan het dier)
             score += 100; // Vergroot score
             return false; // Verwijder het dier
         } else if (collided && enemy.size > player.size) {
-            // Dier eet Ling Ling
+            // Dier eet Ling Ling (dier is groter dan Ling Ling)
             gameOver = true;
             return false; // Verwijder Ling Ling
         }
