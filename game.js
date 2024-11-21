@@ -219,6 +219,7 @@ function checkCollisions() {
         if (collided && player.size > enemy.size) {
             // Ling Ling eet het dier (groter dan het dier)
             score += 100; // Vergroot score
+            player.size += 10; // Groter worden
             return false; // Verwijder het dier
         } else if (collided && enemy.size > player.size) {
             // Dier eet Ling Ling (dier is groter dan Ling Ling)
@@ -269,18 +270,7 @@ function resetGame() {
     gameLoop();
 }
 
-// Game loop
-function gameLoop() {
-    draw();
-    if (!gameOver) {
-        movePlayer();
-        moveEnemies();
-        checkCollisions();
-        requestAnimationFrame(gameLoop);
-    }
-}
-
-// Start spel
+// Start het spel
 spawnInitialEntities();
 setInterval(spawnEnemy, 3000);
 setInterval(spawnCandy, 5000);
