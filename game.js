@@ -208,6 +208,25 @@ function checkCollisions() {
             }, 2000);
         }
     });
+
+    // Ling Ling eet dieren
+    enemies = enemies.filter(enemy => {
+        const collided = player.x < enemy.x + enemy.size &&
+                         player.x + player.size > enemy.x &&
+                         player.y < enemy.y + enemy.size &&
+                         player.y + player.size > enemy.y;
+
+        if (collided && player.size > enemy.size) {
+            // Ling Ling eet het dier
+            score += 100; // Vergroot score
+            return false; // Verwijder het dier
+        } else if (collided && enemy.size > player.size) {
+            // Dier eet Ling Ling
+            gameOver = true;
+            return false; // Verwijder Ling Ling
+        }
+        return true;
+    });
 }
 
 // Toetsenbord events
