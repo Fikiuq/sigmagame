@@ -13,14 +13,20 @@ const catImg = new Image();
 catImg.src = 'cat.png';
 const candyImg = new Image();
 candyImg.src = 'candy.png';
+const lumpiaImg = new Image();
+lumpiaImg.src = 'lumpia.png';
+const drolImg = new Image();
+drolImg.src = 'drol.png';
 
 // Speler en vijanden
 let player = { x: 400, y: 300, size: 50, speed: 5, dx: 0, dy: 0 };
 let enemies = [];
 let candies = [];
+let lumpias = [];
+let drollen = [];
 let score = 0;
-const AGGRESSIVE_SIZE = 70; // Drempelgrootte voor agressie
-let gameOver = false; // Variabele om spelstatus bij te houden
+const AGGRESSIVE_SIZE = 70;
+let gameOver = false;
 
 // Helpers
 function randomPosition() {
@@ -30,7 +36,6 @@ function randomPosition() {
     };
 }
 
-// Zorg ervoor dat de speler en vijanden binnen het canvas blijven
 function constrainPosition(entity) {
     if (entity.x < 0) entity.x = 0;
     if (entity.x + entity.size > canvas.width) entity.x = canvas.width - entity.size;
@@ -38,14 +43,11 @@ function constrainPosition(entity) {
     if (entity.y + entity.size > canvas.height) entity.y = canvas.height - entity.size;
 }
 
-// Spawn 3 vijanden en 5 snoepjes in het begin
+// Spawn initiële entiteiten
 function spawnInitialEntities() {
-    for (let i = 0; i < 3; i++) {
-        spawnEnemy();
-    }
-    for (let i = 0; i < 5; i++) {
-        spawnCandy();
-    }
+    for (let i = 0; i < 3; i++) spawnEnemy();
+    for (let i = 0; i < 5; i++) spawnCandy();
+    for (let i = 0; i < 3; i++) spawnLumpia();
 }
 
 // Vijanden maken
@@ -58,6 +60,18 @@ function spawnEnemy() {
 function spawnCandy() {
     const candy = { ...randomPosition(), size: 20 };
     candies.push(candy);
+}
+
+// Lumpia's maken
+function spawnLumpia() {
+    const lumpia = { ...randomPosition(), size: 30 };
+    lumpias.push(lumpia);
+}
+
+// Drollen maken
+function spawnDrol(x, y) {
+    const drol = { x, y, size: 20 };
+    drollen.push(drol);
 }
 
 // Teken alles
@@ -78,6 +92,16 @@ function draw() {
         ctx.drawImage(candyImg, candy.x, candy.y, candy.size, candy.size);
     });
 
+    // Teken lumpia's
+    lumpias.forEach(lumpia => {
+        ctx.drawImage(lumpiaImg, lumpia.x, lumpia.y, lumpia.size, lumpia.size);
+    });
+
+    // Teken drollen
+    drollen.forEach(drol => {
+        ctx.drawImage(drolImg, drol.x, drol.y, drol.size, drol.size);
+    });
+
     // Score
     ctx.font = '20px Arial';
     ctx.fillStyle = 'black';
@@ -92,13 +116,6 @@ function draw() {
         ctx.font = '30px Arial';
         ctx.fillText('Game Over!', canvas.width / 2 - 80, canvas.height / 2 - 10);
         ctx.fillText(`Score: ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 30);
-
-        // Play Again knop
-        ctx.fillStyle = '#ffeb3b';
-        ctx.fillRect(canvas.width / 2 - 75, canvas.height / 2 + 50, 150, 40);
-        ctx.fillStyle = 'black';
-        ctx.font = '20px Arial';
-        ctx.fillText('Play Again', canvas.width / 2 - 50, canvas.height / 2 + 80);
     }
 }
 
@@ -108,6 +125,10 @@ function moveEnemies() {
         const dx = player.x - enemy.x;
         const dy = player.y - enemy.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Vijand wordt trager naarmate hij groter wordt
+        const speedFactor = Math.max(0.5, 2 - (enemy.size - 50) / 50);
+        enemy.speed = speedFactor;
 
         if (enemy.size >= AGGRESSIVE_SIZE) {
             if (distance > 0) {
@@ -124,37 +145,44 @@ function moveEnemies() {
     });
 }
 
-// Beweeg speler
+// Speler bewegen
 function movePlayer() {
     player.x += player.dx;
     player.y += player.dy;
     constrainPosition(player);
 }
 
-// Botsingen tussen vijanden en snoepjes
-function checkCandyCollisions() {
+// Controleer botsingen
+function checkCollisions() {
+    // Snoepjes
     candies = candies.filter(candy => {
-        for (let i = 0; i < enemies.length; i++) {
-            const enemy = enemies[i];
-            const collided = candy.x < enemy.x + enemy.size &&
-                             candy.x + candy.size > enemy.x &&
-                             candy.y < enemy.y + enemy.size &&
-                             candy.y + candy.size > enemy.y;
-
-            if (collided) {
+        for (let enemy of enemies) {
+            if (candy.x < enemy.x + enemy.size &&
+                candy.x + candy.size > enemy.x &&
+                candy.y < enemy.y + enemy.size &&
+                candy.y + candy.size > enemy.y) {
                 enemy.size += 20;
-                if (enemy.size >= AGGRESSIVE_SIZE) {
-                    enemy.aggressive = true;
-                }
                 return false;
             }
         }
         return true;
     });
-}
 
-// Check botsingen tussen speler en vijanden
-function checkPlayerCollisions() {
+    // Lumpia's
+    lumpias = lumpias.filter(lumpia => {
+        for (let enemy of enemies) {
+            if (lumpia.x < enemy.x + enemy.size &&
+                lumpia.x + lumpia.size > enemy.x &&
+                lumpia.y < enemy.y + enemy.size &&
+                lumpia.y + lumpia.size > enemy.y) {
+                spawnDrol(enemy.x, enemy.y);
+                return false;
+            }
+        }
+        return true;
+    });
+
+    // Speler botsing met vijanden
     enemies = enemies.filter(enemy => {
         const collided = player.x < enemy.x + enemy.size &&
                          player.x + player.size > enemy.x &&
@@ -163,7 +191,7 @@ function checkPlayerCollisions() {
 
         if (collided) {
             if (enemy.size >= AGGRESSIVE_SIZE) {
-                gameOver = true; // Zet game over status
+                gameOver = true;
                 return false;
             } else {
                 score += 100;
@@ -188,44 +216,20 @@ document.addEventListener('keyup', e => {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
 });
 
-// Klik op Play Again knop
-canvas.addEventListener('click', e => {
-    if (!gameOver) return;
-
-    const mouseX = e.offsetX;
-    const mouseY = e.offsetY;
-
-    if (mouseX > canvas.width / 2 - 75 && mouseX < canvas.width / 2 + 75 &&
-        mouseY > canvas.height / 2 + 50 && mouseY < canvas.height / 2 + 90) {
-        resetGame();
-    }
-});
-
-// Reset game
-function resetGame() {
-    player = { x: 400, y: 300, size: 50, speed: 5, dx: 0, dy: 0 };
-    enemies = [];
-    candies = [];
-    score = 0;
-    gameOver = false;
-    spawnInitialEntities();
-    gameLoop();
-}
-
 // Game loop
 function gameLoop() {
     draw();
     if (!gameOver) {
         movePlayer();
         moveEnemies();
-        checkCandyCollisions();
-        checkPlayerCollisions();
+        checkCollisions();
         requestAnimationFrame(gameLoop);
     }
 }
 
-// Start het spel
+// Start spel
 spawnInitialEntities();
 setInterval(spawnEnemy, 3000);
 setInterval(spawnCandy, 5000);
+setInterval(spawnLumpia, 7000);
 gameLoop();
