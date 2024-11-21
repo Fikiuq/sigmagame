@@ -19,7 +19,7 @@ const drolImg = new Image();
 drolImg.src = 'drol.png';
 
 // Speler en vijanden
-let player = { x: 400, y: 300, size: 50, speed: 5, dx: 0, dy: 0 };
+let player = { x: 400, y: 300, size: 50, speed: 5, dx: 0, dy: 0, slowed: false };
 let enemies = [];
 let candies = [];
 let lumpias = [];
@@ -116,6 +116,13 @@ function draw() {
         ctx.font = '30px Arial';
         ctx.fillText('Game Over!', canvas.width / 2 - 80, canvas.height / 2 - 10);
         ctx.fillText(`Score: ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 30);
+
+        // Play Again knop
+        ctx.fillStyle = '#ffeb3b';
+        ctx.fillRect(canvas.width / 2 - 75, canvas.height / 2 + 50, 150, 40);
+        ctx.fillStyle = 'black';
+        ctx.font = '20px Arial';
+        ctx.fillText('Play Again', canvas.width / 2 - 50, canvas.height / 2 + 80);
     }
 }
 
@@ -126,11 +133,10 @@ function moveEnemies() {
         const dy = player.y - enemy.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Vijand wordt trager naarmate hij groter wordt
         const speedFactor = Math.max(0.5, 2 - (enemy.size - 50) / 50);
         enemy.speed = speedFactor;
 
-        if (enemy.size >= AGGRESSIVE_SIZE) {
+        if (enemy.aggressive) {
             if (distance > 0) {
                 enemy.x += (dx / distance) * enemy.speed;
                 enemy.y += (dy / distance) * enemy.speed;
@@ -152,7 +158,7 @@ function movePlayer() {
     constrainPosition(player);
 }
 
-// Controleer botsingen
+// Botsingen controleren
 function checkCollisions() {
     // Snoepjes
     candies = candies.filter(candy => {
@@ -162,6 +168,7 @@ function checkCollisions() {
                 candy.y < enemy.y + enemy.size &&
                 candy.y + candy.size > enemy.y) {
                 enemy.size += 20;
+                if (enemy.size >= AGGRESSIVE_SIZE) enemy.aggressive = true;
                 return false;
             }
         }
@@ -171,34 +178,35 @@ function checkCollisions() {
     // Lumpia's
     lumpias = lumpias.filter(lumpia => {
         for (let enemy of enemies) {
-            if (lumpia.x < enemy.x + enemy.size &&
+            if (enemy.size >= AGGRESSIVE_SIZE && // Alleen grote vijanden
+                lumpia.x < enemy.x + enemy.size &&
                 lumpia.x + lumpia.size > enemy.x &&
                 lumpia.y < enemy.y + enemy.size &&
                 lumpia.y + lumpia.size > enemy.y) {
-                spawnDrol(enemy.x, enemy.y);
+                enemy.size -= 20; // Wordt kleiner
+                enemy.aggressive = false; // Verliest agressie
+                spawnDrol(enemy.x, enemy.y); // Laat een drol achter
                 return false;
             }
         }
         return true;
     });
 
-    // Speler botsing met vijanden
-    enemies = enemies.filter(enemy => {
-        const collided = player.x < enemy.x + enemy.size &&
-                         player.x + player.size > enemy.x &&
-                         player.y < enemy.y + enemy.size &&
-                         player.y + player.size > enemy.y;
+    // Speler drol botsing
+    drollen.forEach(drol => {
+        const collided = player.x < drol.x + drol.size &&
+                         player.x + player.size > drol.x &&
+                         player.y < drol.y + drol.size &&
+                         player.y + player.size > drol.y;
 
-        if (collided) {
-            if (enemy.size >= AGGRESSIVE_SIZE) {
-                gameOver = true;
-                return false;
-            } else {
-                score += 100;
-                return false;
-            }
+        if (collided && !player.slowed) {
+            player.slowed = true;
+            player.speed -= 2; // Trager
+            setTimeout(() => {
+                player.speed += 2; // Herstel snelheid na 2 sec
+                player.slowed = false;
+            }, 2000);
         }
-        return true;
     });
 }
 
@@ -215,6 +223,32 @@ document.addEventListener('keyup', e => {
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') player.dy = 0;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
 });
+
+// Klik op Play Again knop
+canvas.addEventListener('click', e => {
+    if (!gameOver) return;
+
+    const mouseX = e.offsetX;
+    const mouseY = e.offsetY;
+
+    if (mouseX > canvas.width / 2 - 75 && mouseX < canvas.width / 2 + 75 &&
+        mouseY > canvas.height / 2 + 50 && mouseY < canvas.height / 2 + 90) {
+        resetGame();
+    }
+});
+
+// Reset spel
+function resetGame() {
+    player = { x: 400, y: 300, size: 50, speed: 5, dx: 0, dy: 0, slowed: false };
+    enemies = [];
+    candies = [];
+    lumpias = [];
+    drollen = [];
+    score = 0;
+    gameOver = false;
+    spawnInitialEntities();
+    gameLoop();
+}
 
 // Game loop
 function gameLoop() {
