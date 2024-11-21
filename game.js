@@ -45,18 +45,9 @@ function constrainPosition(entity) {
 
 // Spawn initiële entiteiten
 function spawnInitialEntities() {
-    // Spawn vijanden
-    for (let i = 0; i < 3; i++) {
-        spawnEnemy();
-    }
-    // Spawn snoepjes
-    for (let i = 0; i < 5; i++) {
-        spawnCandy();
-    }
-    // Spawn lumpia's
-    for (let i = 0; i < 3; i++) {
-        spawnLumpia();
-    }
+    for (let i = 0; i < 3; i++) spawnEnemy();
+    for (let i = 0; i < 5; i++) spawnCandy();
+    for (let i = 0; i < 3; i++) spawnLumpia();
 }
 
 // Vijanden maken
@@ -217,26 +208,6 @@ function checkCollisions() {
             }, 2000);
         }
     });
-
-    // **Ling Ling eet dieren als hij groter is**
-    enemies = enemies.filter(enemy => {
-        const collided = player.x < enemy.x + enemy.size &&
-                         player.x + player.size > enemy.x &&
-                         player.y < enemy.y + enemy.size &&
-                         player.y + player.size > enemy.y;
-
-        if (collided && player.size > enemy.size) {
-            // Ling Ling eet het dier (groter dan het dier)
-            score += 100; // Vergroot score
-            player.size += 10; // Groter worden
-            return false; // Verwijder het dier
-        } else if (collided && enemy.size > player.size) {
-            // Dier eet Ling Ling (dier is groter dan Ling Ling)
-            gameOver = true;
-            return false; // Verwijder Ling Ling
-        }
-        return true;
-    });
 }
 
 // Toetsenbord events
@@ -279,7 +250,18 @@ function resetGame() {
     gameLoop();
 }
 
-// Start het spel
+// Game loop
+function gameLoop() {
+    draw();
+    if (!gameOver) {
+        movePlayer();
+        moveEnemies();
+        checkCollisions();
+        requestAnimationFrame(gameLoop);
+    }
+}
+
+// Start spel
 spawnInitialEntities();
 setInterval(spawnEnemy, 3000);
 setInterval(spawnCandy, 5000);
