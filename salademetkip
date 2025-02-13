@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salade met Kiiiiiiiiiiiiiiiiiiiiiip</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        h1 {
+            color: #ff6600;
+        }
+        .salade-container {
+            position: relative;
+            display: inline-block;
+        }
+        .kip {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            width: 100px;
+            transition: all 0.3s ease-in-out;
+        }
+        .kip:hover {
+            transform: translate(-50%, -50%) rotate(15deg) scale(1.2);
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #cc5500;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Salade met Kiiiiiiiiiiiiiiiiiiiiiip 🥗🍗</h1>
+
+    <div class="salade-container">
+        <img src="https://th.bing.com/th/id/OIP.8iLVyVDaePRtm8ryNhLkHQHaEo?w=248&h=180&c=7&r=0&o=5&dpr=1.4&pid=1.7" alt="Salade">
+        <img src="https://th.bing.com/th/id/R.57ad284fd385c0578d568f86766c8da6?rik=CVlUjgTWi4%2b5xA&pid=ImgRaw&r=0" alt="Kiiiiiiiiiiiiiiiiiiiiiip" class="kip" id="kip">
+    </div>
+
+    <br>
+    <button onclick="voegMeerKipToe()">Meer Kiiiiiiiiiiiiiiiiiiiiiip! 🍗</button>
+
+    <script>
+        function voegMeerKipToe() {
+            let kipImg = document.createElement("img");
+            kipImg.src = "https://th.bing.com/th/id/OIP.8iLVyVDaePRtm8ryNhLkHQHaEo?w=248&h=180&c=7&r=0&o=5&dpr=1.4&pid=1.7" alt="Salade">
+        <img src="https://th.bing.com/th/id/R.57ad284fd385c0578d568f86766c8da6?rik=CVlUjgTWi4%2b5xA&pid=ImgRaw&r=0"";
+            kipImg.className = "kip";
+            kipImg.style.top = Math.random() * 80 + "%";
+            kipImg.style.left = Math.random() * 80 + "%";
+            document.querySelector(".salade-container").appendChild(kipImg);
+        }
+    </script>
+
+</body>
+</html>
