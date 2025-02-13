@@ -37,8 +37,8 @@
         .game-container {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             height: calc(100vh - 100px);
             position: relative;
         }
@@ -67,13 +67,9 @@
             background-color: red;
             color: white;
             border: none;
-            cursor: pointer;
             border-radius: 5px;
+            cursor: pointer;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
-        }
-
-        .restart-button:hover {
-            background-color: darkred;
         }
     </style>
 </head>
@@ -103,6 +99,7 @@
 
         // Toetsenregistratie
         let keys = {};
+
         window.addEventListener('keydown', (e) => keys[e.key] = true);
         window.addEventListener('keyup', (e) => keys[e.key] = false);
 
@@ -139,7 +136,6 @@
             if (keys['ArrowDown']) player.y += player.speed;
             if (keys['ArrowLeft']) player.x -= player.speed;
             if (keys['ArrowRight']) player.x += player.speed;
-
             mazeWalls.forEach(wall => {
                 if (
                     player.x < wall.x + wall.width &&
@@ -153,12 +149,10 @@
                     if (keys['ArrowRight']) player.x -= player.speed;
                 }
             });
-
             if (player.x < 0) player.x = 0;
             if (player.y < 0) player.y = 0;
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
             if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
-
             if (
                 player.x < goal.x + goal.width &&
                 player.x + player.width > goal.x &&
@@ -169,7 +163,6 @@
             }
         }
 
-        // Volgend level
         function nextLevel() {
             level++;
             player.x = 10;
@@ -177,16 +170,14 @@
             generateMaze(level);
         }
 
-        // Game herstarten
-        function restartGame() {
-            location.reload();
-        }
-
-        // Game loop
         function gameLoop() {
             movePlayer();
             draw();
             requestAnimationFrame(gameLoop);
+        }
+
+        function restartGame() {
+            location.reload();
         }
 
         generateMaze(level);
